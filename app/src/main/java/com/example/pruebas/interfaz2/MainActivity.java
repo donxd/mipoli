@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Spinner;
 
 public class MainActivity extends AppCompatActivity
 		implements NavigationView.OnNavigationItemSelectedListener {
@@ -26,16 +27,21 @@ public class MainActivity extends AppCompatActivity
 		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 
+		PestaniasFragment pestaniasFragment = new PestaniasFragment();
+		pestaniasFragment.setContext( this );
+
 		FragmentManager fragmentManager = getSupportFragmentManager();
 		FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-		fragmentTransaction.replace( R.id.contenido_layout, new PestaniasFragment() );
-		fragmentTransaction.commit();
+		fragmentTransaction.replace( R.id.contenido_layout, pestaniasFragment );
+		pestaniasFragment.configuraBarraHerramientas( (Spinner) findViewById( R.id.lista_herramientas ) );
+		pestaniasFragment.setManejador( fragmentManager );
 
+		fragmentTransaction.commit();
 
 		navigationView.setNavigationItemSelectedListener(this);
 
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-		setSupportActionBar(toolbar);
+		//setSupportActionBar(toolbar);
 
 		FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 		fab.setOnClickListener(new View.OnClickListener() {
