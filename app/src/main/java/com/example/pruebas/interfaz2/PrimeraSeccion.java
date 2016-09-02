@@ -3,6 +3,7 @@ package com.example.pruebas.interfaz2;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,7 @@ public class PrimeraSeccion extends Fragment {
 	private View vista = null;
 	private Spinner controlListaPlanteles;
 	private static boolean paginaConfigurada = false;
+	private Integer contador;
 
 	@Nullable
 	@Override
@@ -33,6 +35,7 @@ public class PrimeraSeccion extends Fragment {
 	@Override
 	public void onViewCreated ( View view, Bundle savedInstanceState ){
 		vista = view;
+		vista.setTag( "s1" );
 		// actualizaLeyenda();
 		if ( !paginaConfigurada ){
 			cargaPaginaSaes();
@@ -74,5 +77,9 @@ public class PrimeraSeccion extends Fragment {
 		textView.setText( plantel );
 	}
 	*/
+
+	public void setContador ( Integer contador ){
+		this.contador = contador;
+	}
 
 }

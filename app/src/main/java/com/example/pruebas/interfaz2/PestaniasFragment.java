@@ -28,14 +28,17 @@ public class PestaniasFragment extends Fragment {
 	public static ViewPager viewPager;
 	public static int numero_secciones = 3;
 
-	private PrimeraSeccion seccion1 = new PrimeraSeccion();
-	private SegundaSeccion seccion2 = new SegundaSeccion();
-	private TerceraSeccion seccion3 = new TerceraSeccion();
+	private final PrimeraSeccion seccion1 = new PrimeraSeccion();
+	private final SegundaSeccion seccion2 = new SegundaSeccion();
+	private final TerceraSeccion seccion3 = new TerceraSeccion();
 
 	private Context context;
 	private Spinner listaPlanteles;
 	private AdaptadorPestanias adaptadorPestanias;
 	private FragmentManager manejador;
+
+	private boolean seccionesCreadas = false;
+	private static Integer contador = 0;
 
 	@Nullable
 	@Override
@@ -46,6 +49,7 @@ public class PestaniasFragment extends Fragment {
 		tabLayout = (TabLayout) x.findViewById( R.id.tabs );
 		viewPager = (ViewPager) x.findViewById( R.id.viewPager );
 
+		seccion1.setContador( contador );
 		adaptadorPestanias = new AdaptadorPestanias( getChildFragmentManager() );
 
 		viewPager.setAdapter( adaptadorPestanias );
@@ -133,9 +137,10 @@ public class PestaniasFragment extends Fragment {
 	}
 
 	private void controlaPrimeraSeccion (){
+		//getChildFragmentManager().beginTransaction().
 		// FragmentTransaction fragmentTransaction = manejador.beginTransaction();
 		//seccion1.actualizaLeyenda();
-		seccion1.cargaPaginaSaes();
+		//seccion1.cargaPaginaSaes();
 		// fragmentTransaction.detach( manejador );
 		// fragmentTransaction.commit();
 	}
@@ -152,13 +157,52 @@ public class PestaniasFragment extends Fragment {
 
 		@Override
 		public Fragment getItem ( int position ){
+
+			/*
+			Fragment seccion = null;
+			FragmentManager fragmentManager = getChildFragmentManager();
+
+			String mostrar = "";
+			String [] ocultar = new String [ 2 ];
+
 			switch ( position ){
-				case 0 : return seccion1;
-				case 1 : return seccion2;
-				case 2 : return seccion3;
+				case 0 :
+					seccion = seccion1;
+					mostrar = "s1";
+					ocultar[ 0 ] = "s2";
+					ocultar[ 0 ] = "s3";
+					break;
+				case 1 :
+					seccion = seccion2;
+					mostrar = "s2";
+					ocultar[ 0 ] = "s1";
+					ocultar[ 0 ] = "s3";
+					break;
+				case 2 :
+					seccion = seccion3;
+					mostrar = "s3";
+					ocultar[ 0 ] = "s1";
+					ocultar[ 0 ] = "s2";
+					break;
 			}
 
-			return null;
+			if ( seccion != null ){
+				fragmentManager.beginTransaction().show( fragmentManager.findFragmentByTag( mostrar ) );
+				fragmentManager.beginTransaction().show( fragmentManager.findFragmentByTag( ocultar[ 0 ] ) );
+				fragmentManager.beginTransaction().show( fragmentManager.findFragmentByTag( ocultar[ 1 ] ) );
+			}
+
+
+			return seccion;
+			*/
+
+			switch ( position ){
+				case 0  : return seccion1;
+				case 1  : return seccion2;
+				case 2  : return seccion3;
+				default : return  null;
+			}
+
 		}
 
 		@Override
