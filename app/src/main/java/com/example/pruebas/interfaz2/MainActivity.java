@@ -1,6 +1,7 @@
 package com.example.pruebas.interfaz2;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
@@ -16,34 +17,88 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Spinner;
 
-public class MainActivity extends AppCompatActivity
-		implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity {
+		// implements NavigationView.OnNavigationItemSelectedListener {
+
+	private DrawerLayout drawer;
+
+	private FragmentManager fragmentManager;
+	private FragmentTransaction fragmentTransaction;
+
+	private PestaniasFragment pestaniasFragment = new PestaniasFragment();
+	private AnoterFragment anoterFragment = new AnoterFragment();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
 
-		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+		super.onCreate( savedInstanceState );
+		setContentView( R.layout.activity_main );
+
+		drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 
-		PestaniasFragment pestaniasFragment = new PestaniasFragment();
+
+		fragmentManager = getSupportFragmentManager();
 		pestaniasFragment.setContext( this );
-
-		FragmentManager fragmentManager = getSupportFragmentManager();
-		FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-		fragmentTransaction.replace( R.id.contenido_layout, pestaniasFragment );
-
 		pestaniasFragment.configuraBarraHerramientas( (Spinner) findViewById( R.id.lista_herramientas ) );
 		pestaniasFragment.setManejador( fragmentManager );
 
+		fragmentTransaction = fragmentManager.beginTransaction();
+		fragmentTransaction.replace( R.id.contenido_layout, pestaniasFragment );
 		fragmentTransaction.commit();
 
-		navigationView.setNavigationItemSelectedListener(this);
+		navigationView.setNavigationItemSelectedListener( new NavigationView.OnNavigationItemSelectedListener() {
+			@Override
+			public boolean onNavigationItemSelected(MenuItem item) {
+
+				drawer.closeDrawers();
+
+				int id = item.getItemId();
+
+				// if (id == R.id.nav_camera) {
+
+				// } else if (id == R.id.nav_gallery) {
+
+				// } else if (id == R.id.nav_slideshow) {
+
+				// } else if (id == R.id.nav_manage) {
+
+				// } else if (id == R.id.nav_share) {
+
+				// } else if (id == R.id.nav_send) {
+
+				// }
+
+				switch ( id ){
+					case R.id.nav_camera:
+						fragmentTransaction = fragmentManager.beginTransaction();
+						fragmentTransaction.replace( R.id.contenido_layout, pestaniasFragment );
+						fragmentTransaction.commit();
+						break;
+					case R.id.nav_gallery:
+						// FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+						fragmentTransaction = fragmentManager.beginTransaction();
+						fragmentTransaction.replace( R.id.contenido_layout, anoterFragment );
+						fragmentTransaction.commit();
+						break;
+					case R.id.nav_slideshow:
+						break;
+					case R.id.nav_manage:
+						break;
+					case R.id.nav_share:
+						break;
+					case R.id.nav_send:
+						break;
+				}
+
+				return false;
+			}
+		});
 
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		//setSupportActionBar(toolbar);
 
+		/*
 		FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 		fab.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -52,6 +107,7 @@ public class MainActivity extends AppCompatActivity
 						.setAction("Action", null).show();
 			}
 		});
+		*/
 
 		ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
 				this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -60,6 +116,7 @@ public class MainActivity extends AppCompatActivity
 
 	}
 
+	/*
 	@Override
 	public void onBackPressed() {
 		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -92,14 +149,18 @@ public class MainActivity extends AppCompatActivity
 		return super.onOptionsItemSelected(item);
 	}
 
-	@SuppressWarnings("StatementWithEmptyBody")
+	/*@SuppressWarnings("StatementWithEmptyBody")
 	@Override
 	public boolean onNavigationItemSelected(MenuItem item) {
 		// Handle navigation view item clicks here.
 		int id = item.getItemId();
 
 		if (id == R.id.nav_camera) {
-			// Handle the camera action
+
+			// FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+			fragmentTransaction.replace( R.id.contenido_layout, anoterFragment );
+			fragmentTransaction.commit();
+
 		} else if (id == R.id.nav_gallery) {
 
 		} else if (id == R.id.nav_slideshow) {
@@ -115,5 +176,5 @@ public class MainActivity extends AppCompatActivity
 		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 		drawer.closeDrawer(GravityCompat.START);
 		return true;
-	}
+	}*/
 }
