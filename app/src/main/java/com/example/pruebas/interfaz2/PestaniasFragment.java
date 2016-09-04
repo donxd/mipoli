@@ -116,8 +116,13 @@ public class PestaniasFragment extends Fragment {
 						controlaPrimeraSeccion();
 						muestraPlanteles();
 						break;
-					case 1: ocultaPlanteles(); break;
-					case 2: ocultaPlanteles(); break;
+					case 1:
+						ocultaPlanteles();
+						seccion2.revisaConexionInternet();
+						break;
+					case 2:
+						ocultaPlanteles();
+						break;
 				}
 			}
 
@@ -143,6 +148,7 @@ public class PestaniasFragment extends Fragment {
 		//seccion1.cargaPaginaSaes();
 		// fragmentTransaction.detach( manejador );
 		// fragmentTransaction.commit();
+		seccion1.controlaPaginaSaes();
 	}
 
 	public void setManejador ( FragmentManager manejador ) {

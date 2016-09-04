@@ -7,6 +7,9 @@ import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -20,6 +23,8 @@ public class PrimeraSeccion extends Fragment {
 	private Spinner controlListaPlanteles;
 	private static boolean paginaConfigurada = false;
 	private Integer contador;
+	private boolean paginaCargada = true;
+	private WebView pagina;
 
 	@Nullable
 	@Override
@@ -51,8 +56,15 @@ public class PrimeraSeccion extends Fragment {
 	}
 	*/
 
+	public void controlaPaginaSaes (){
+		if ( !paginaCargada ){
+			paginaCargada = true;
+			pagina.reload();
+		}
+	}
+
 	public void cargaPaginaSaes (){
-		WebView pagina = (WebView) vista.findViewById( R.id.nav_web );
+		pagina = (WebView) vista.findViewById( R.id.nav_web );
 		pagina.getSettings().setBuiltInZoomControls( true );
 		pagina.getSettings().setJavaScriptEnabled(true);
 		pagina.setWebViewClient( new WebViewClient() {
@@ -60,9 +72,28 @@ public class PrimeraSeccion extends Fragment {
 			@Override
 			public void onPageFinished( WebView webview, String url ){
 				super.onPageFinished( webview, url );
+
+				if ( paginaCargada && pagina.getVisibility() == View.GONE ){
+					pagina.setVisibility( View.VISIBLE );
+				}
+			}
+
+			@Override
+			public void onReceivedError(WebView view, int errorCode, String description, String failingUrl){
+				paginaCargada = false;
+				TextView textView = (TextView) vista.findViewById( R.id.mensaje_pagina );
+				textView.setText( "No hay internet" );
+				textView.setVisibility( View.VISIBLE );
+
+				/*
+				WebView webView = (WebView) vista.findViewById( R.id.nav_web );
+				webView.setVisibility( View.GONE );
+				*/
+				pagina.setVisibility( View.GONE );
 			}
 
 		});
+
 		pagina.loadUrl( "https://www.saes.upiicsa.ipn.mx" );
 	}
 
