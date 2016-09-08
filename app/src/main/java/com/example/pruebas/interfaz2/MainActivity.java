@@ -1,5 +1,6 @@
 package com.example.pruebas.interfaz2;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -15,15 +16,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
 import android.widget.Spinner;
 
 public class MainActivity extends AppCompatActivity {
 		// implements NavigationView.OnNavigationItemSelectedListener {
 
 	private DrawerLayout drawer;
-
 	private FragmentManager fragmentManager;
 	private FragmentTransaction fragmentTransaction;
+
+	private Spinner controlPlanteles;
+	private SharedPreferences preferencias;
+	private OpcionesPlantel opcionesPlantel;
 
 	private PestaniasFragment pestaniasFragment = new PestaniasFragment();
 	private AnoterFragment anoterFragment = new AnoterFragment();
@@ -34,13 +39,16 @@ public class MainActivity extends AppCompatActivity {
 		super.onCreate( savedInstanceState );
 		setContentView( R.layout.activity_main );
 
-		drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+		drawer = (DrawerLayout) findViewById( R.id.drawer_layout );
+		NavigationView navigationView = (NavigationView) findViewById( R.id.nav_view );
 
+		controlPlanteles = (Spinner) findViewById( R.id.lista_herramientas );
+		// inicializaControlPlanteles();
 
 		fragmentManager = getSupportFragmentManager();
 		pestaniasFragment.setContext( this );
-		pestaniasFragment.configuraBarraHerramientas( (Spinner) findViewById( R.id.lista_herramientas ) );
+		pestaniasFragment.configuraBarraHerramientas( controlPlanteles );
+		pestaniasFragment.aplicaPreferencias();
 		pestaniasFragment.setManejador( fragmentManager );
 
 		fragmentTransaction = fragmentManager.beginTransaction();
@@ -95,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
 			}
 		});
 
-		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+		Toolbar toolbar = (Toolbar) findViewById( R.id.toolbar );
 		//setSupportActionBar(toolbar);
 
 		/*
@@ -115,6 +123,10 @@ public class MainActivity extends AppCompatActivity {
 		toggle.syncState();
 
 	}
+
+	// private void inicializaControlPlanteles (){
+	// 	controlPlanteles.setOnItemSelectedListener();
+	// }
 
 	/*
 	@Override

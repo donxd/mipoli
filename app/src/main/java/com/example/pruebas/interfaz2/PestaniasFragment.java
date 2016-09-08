@@ -1,8 +1,10 @@
 package com.example.pruebas.interfaz2;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -15,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewDebug;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -31,11 +34,15 @@ public class PestaniasFragment extends Fragment {
 	private final PrimeraSeccion seccion1 = new PrimeraSeccion();
 	private final SegundaSeccion seccion2 = new SegundaSeccion();
 	private final TerceraSeccion seccion3 = new TerceraSeccion();
+	private OpcionesPlantel opcionesPlantel = new OpcionesPlantel();
 
-	private Context context;
+
 	private Spinner listaPlanteles;
 	private AdaptadorPestanias adaptadorPestanias;
 	private FragmentManager manejador;
+
+	private SharedPreferences preferencias;
+	private Context context;
 
 	private boolean seccionesCreadas = false;
 	private static Integer contador = 0;
@@ -65,8 +72,26 @@ public class PestaniasFragment extends Fragment {
 		return x;
 	}
 
-	public void setContext( Context context ){
+	public void setContext ( Context context ){
 		this.context = context;
+
+		cargaPreferencias();
+		seccion1.setContext( context );
+	}
+
+	private void cargaPreferencias () {
+		preferencias = PreferenceManager.getDefaultSharedPreferences( this.context );
+	}
+
+	public void aplicaPreferencias () {
+		aplicaPreferenciaPlantel();
+	}
+
+	private void aplicaPreferenciaPlantel () {
+		String plantel = preferencias.getString( "plantel", "" );
+		if ( plantel.length() > 0 ) {
+			listaPlanteles.setSelection( opcionesPlantel.getIndiceOpcionPlantel( plantel ) );
+		}
 	}
 
 	public void configuraBarraHerramientas ( Spinner listaHerramientas ){
@@ -74,12 +99,12 @@ public class PestaniasFragment extends Fragment {
 		seccion1.setControlPlanteles( listaPlanteles );
 		//Spinner listaHerramientas = (Spinner) vistaPrincipal.findViewById( R.id.lista_herramientas );
 		listaHerramientas.setAdapter( getAdaptadorDatos() );
-		// listaHerramientas.setOnItemSelectedListener( getEventoSeleccionListaHerramientas() );
-
+		listaHerramientas.setOnItemSelectedListener( getEventoSeleccionPlantel() );
 	}
 
 	private ArrayAdapter<String> getAdaptadorDatos (){
-		ArrayAdapter<String> adaptador = new ArrayAdapter<String>( context, R.layout.lista_presentacion, getListaDatos() );
+		List<String> listaPlanteles = opcionesPlantel.getListaOpcionesPlanteles();
+		ArrayAdapter<String> adaptador = new ArrayAdapter<String>( context, R.layout.lista_presentacion, listaPlanteles );
 
 		/*
 		vista,
@@ -93,12 +118,32 @@ public class PestaniasFragment extends Fragment {
 		return adaptador;
 	}
 
-	private List<String> getListaDatos (){
-		List<String> listaDatos = new ArrayList<>();
-		listaDatos.add( "UPIICSA" );
-		listaDatos.add( "ESCOM" );
+	private AdapterView.OnItemSelectedListener getEventoSeleccionPlantel (){
+		return new AdapterView.OnItemSelectedListener (){
+			@Override
+			public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l){
+				guardaPreferenciaPlantel();
+				redirigePlantelPreferencia();
+			}
 
-		return listaDatos;
+			@Override
+			public void onNothingSelected( AdapterView<?> adapterView ){
+			}
+		};
+	}
+
+	private void guardaPreferenciaPlantel (){
+		SharedPreferences.Editor editorPreferencias = getEditorPreferencias();
+		editorPreferencias.putString( "plantel", listaPlanteles.getSelectedItem().toString() );
+		editorPreferencias.commit();
+	}
+
+	private void redirigePlantelPreferencia (){
+		seccion1.redirigePlantel();
+	}
+
+	private SharedPreferences.Editor getEditorPreferencias () {
+		return preferencias.edit();
 	}
 
 	private ViewPager.OnPageChangeListener getControladorPestanias (){
