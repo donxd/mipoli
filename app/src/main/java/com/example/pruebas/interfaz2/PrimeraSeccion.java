@@ -7,6 +7,8 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +22,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class PrimeraSeccion extends Fragment {
 
@@ -36,6 +41,10 @@ public class PrimeraSeccion extends Fragment {
 	private static boolean paginaConfigurada = false;
 	private boolean paginaCargada = true;
 
+	private final String marcaLog = "InfoEx";
+	private final String rutaScript = "js/core.js";
+	private JavaJs javaJs = new JavaJs();
+	//private boolean inyeccionRealizada = false;
 
 	@Nullable
 	@Override
@@ -81,18 +90,26 @@ public class PrimeraSeccion extends Fragment {
 		String paginaCargar = getPaginaCargar();
 
 		pagina = (WebView) vista.findViewById(R.id.nav_web);
-		pagina.getSettings().setBuiltInZoomControls(true);
-		pagina.getSettings().setJavaScriptEnabled(true);
-		pagina.setWebViewClient(new WebViewClient() {
+		pagina.getSettings().setDomStorageEnabled( true );
+		pagina.getSettings().setBuiltInZoomControls( true );
+		pagina.getSettings().setJavaScriptEnabled( true );
+		pagina.getSettings().setDatabaseEnabled( true );
+		pagina.getSettings().setDatabasePath( context.getDir("database", Context.MODE_PRIVATE).getPath() );
+		pagina.setWebViewClient( new WebViewClient() {
 
 			@Override
-			public void onPageFinished(WebView webview, String url) {
-				super.onPageFinished(webview, url);
+			public void onPageFinished ( WebView webview, String url ){
 
-				if (paginaCargada && pagina.getVisibility() == View.GONE) {
-					pagina.setVisibility(View.VISIBLE);
-					CookieSyncManager.getInstance().sync();
+				if ( paginaCargada && pagina.getVisibility() == View.GONE ){
+					pagina.setVisibility( View.VISIBLE );
 				}
+
+
+				inyectaJs( webview );
+				javaJs.getContenido();
+				CookieSyncManager.getInstance().sync();
+
+				super.onPageFinished( webview, url );
 			}
 
 			@Override
@@ -111,6 +128,7 @@ public class PrimeraSeccion extends Fragment {
 
 		});
 
+		pagina.addJavascriptInterface( javaJs, "androidJs" );
 		pagina.loadUrl( paginaCargar );
 	}
 
@@ -150,6 +168,63 @@ public class PrimeraSeccion extends Fragment {
 	public void redirigePlantel (){
 		String paginaCargar = getPaginaCargar();
 		pagina.loadUrl( paginaCargar );
+	}
+
+	private void inyectaJs ( WebView webview ){
+		//if ( !inyeccionRealizada ){
+
+			String contenidoInyeccionJS = getCadenaInyeccionJs();
+
+			if ( contenidoInyeccionJS.length() > 0 ){
+				webview.loadUrl( contenidoInyeccionJS );
+				//inyeccionRealizada = true;
+			}
+
+		//}
+
+	}
+
+	public String getCadenaInyeccionJs () {
+		StringBuilder cadena = new StringBuilder();
+		String contenidoScript = getContenidoArchivo();
+
+		if ( contenidoScript.length() > 0 ){
+
+			cadena.append( "javascript:(function(){" );
+			cadena.append( "var script=document.createElement('script');" );
+			cadena.append( "script.type='text/javascript';" );
+			cadena.append( "script.innerHTML=window.atob('" );
+			cadena.append( contenidoScript );
+			cadena.append( "');" );
+			cadena.append( "document.querySelector('head').appendChild(script);" );
+			cadena.append( "})()" );
+
+		}
+		//cadena = new StringBuilder();
+		//cadena.append( "javascript:(function(){document.querySelector('h2').innerHTML='aksjdlfkasdf';})()" );
+		Log.i( marcaLog, "insertando : " + cadena.toString() );
+
+		return cadena.toString();
+	}
+
+	private String getContenidoArchivo (){
+
+		try {
+
+			InputStream inputStream = context.getAssets().open( rutaScript );
+			byte [] contenido = new byte[ inputStream.available() ];
+
+			inputStream.read( contenido );
+			inputStream.close();
+
+			return Base64.encodeToString( contenido, Base64.NO_WRAP );
+			// return new String( contenido );
+
+		} catch ( IOException error ){
+			Log.i( marcaLog, "No se pudo leer el archivo de script" );
+		}
+
+		return "";
 	}
 
 }
