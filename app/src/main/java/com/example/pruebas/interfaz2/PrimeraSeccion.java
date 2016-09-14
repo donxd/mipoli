@@ -219,8 +219,13 @@ public class PrimeraSeccion extends Fragment {
 			inputStream.read( contenido );
 			inputStream.close();
 
-			return Base64.encodeToString( contenido, Base64.NO_WRAP );
+			String textoArchivo = new String( contenido );
+
+			// textoArchivo = textoArchivo.replaceAll( "é", "\u00E9" );
+
+			// return Base64.encodeToString( textoArchivo.getBytes(), Base64.NO_WRAP );
 			// return new String( contenido );
+			return Base64.encodeToString( contenido, Base64.NO_WRAP );
 
 		} catch ( IOException error ){
 			Log.i( marcaLog, "No se pudo leer el archivo de script" );

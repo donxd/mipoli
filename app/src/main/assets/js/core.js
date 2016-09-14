@@ -9,18 +9,25 @@ function cambiaTitulo (){
 }
 
 function ajustarDisenio (){
-	ajustaEstructuraPagina();
-	ajustaMenu();
+	// ajustaEstructuraPagina();
+	// ajustaMenu();
 	ajustaEnlaces();
 	ajustaElementos();
 	ajustaColorFondo();
 }
 
 function ajustaEstructuraPagina (){
+	// agregaCodificacion();
 	ajustaAnchoContenedorPrincipal();
 	mueveSeccionesPagina();
 	agregaEstilosSecciones();
 }
+
+// function agregaCodificacion (){
+// 	var codificacion = document.createElement( 'meta' );
+// 	codificacion.setAttribute( 'charset', 'utf-8' );
+// 	getElemento( 'head' ).appendChild( codificacion );
+// }
 
 function ajustaAnchoContenedorPrincipal (){
 	getElementos( '#wrapper' ).forEach( function ( elemento ){
@@ -209,7 +216,15 @@ function ajustaMenu (){
 
 function ajustaEnlaces (){
 	getElementos( 'a:not([href=""])' ).forEach( function ( elemento ){
-		procesaEnlace( elemento );
+	// getElementos( 'a' ).forEach( function ( elemento ){
+	    if ( elemento != null && 
+	    		elemento.getAttribute( 'href' ) != null && elemento.getAttribute( 'href' ).length > 0 ){
+
+	    	// elemento.setAttribute( 'style', 'color : #0F0 !important;' );
+
+	        // console.log( "enlace : "+ elemento.getAttribute( 'href' ) );
+            procesaEnlace( elemento );
+	    }
 	});
 }
 
@@ -223,28 +238,30 @@ function procesaEnlace ( enlace ){
 			enlace.setAttribute( 'target', '_blank' );
 			break;
 		case PAGINA_SPA_PRINCIPAL:
-			enlace.text = 'SPA';
+			enlace.innerText = 'SPA';
 			break;
 		case PAGINA_SPA_INSCRIPCION:
-			enlace.text = 'Inscribir SPA';
+			enlace.innerText = 'Inscribir SPA';
 			break;
 		case PAGINA_PROFESORES_PRINCIPAL:
-			enlace.text = 'Profesores';
+			enlace.innerText = 'Profesores';
 			break;
 		case PAGINA_ALUMNOS_GENERAL:
-			enlace.text = 'General';
+			enlace.innerText = 'General';
 			break;
 		case PAGINA_ALUMNOS_MEDICOS:
-			enlace.text = 'Médicos';
+			enlace.innerText = 'Médicos';
 			break;
 		case PAGINA_ALUMNOS_DEPORTIVOS:
-			enlace.text = 'Deportivos';
+			enlace.innerText = 'Deportivos';
 			break;
 	}
 }
 
 function ajustaElementos (){
-	getElemento( SELECTOR_CONTENEDOR_CONTENIDO_PRINCIPAL ).style.display = 'table';
+	getElementos( SELECTOR_CONTENEDOR_CONTENIDO_PRINCIPAL ).forEach( function ( elemento ){
+	    elemento.style.display = 'table';
+	});
 	getElementos( SELECTOR_ACCESOS_RAPIDOS ).forEach( function ( elemento ){
 		elemento.style.display = 'table-cell';
 		elemento.style.float   = 'none';
