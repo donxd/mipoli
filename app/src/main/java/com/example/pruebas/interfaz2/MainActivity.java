@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 	private AnoterFragment anoterFragment = new AnoterFragment();
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate( Bundle savedInstanceState ) {
 
 		super.onCreate( savedInstanceState );
 		setContentView( R.layout.activity_main );
@@ -189,4 +189,5 @@ public class MainActivity extends AppCompatActivity {
 		drawer.closeDrawer(GravityCompat.START);
 		return true;
 	}*/
+
 }

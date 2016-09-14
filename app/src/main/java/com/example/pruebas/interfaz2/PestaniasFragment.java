@@ -123,6 +123,7 @@ public class PestaniasFragment extends Fragment {
 			@Override
 			public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l){
 				guardaPreferenciaPlantel();
+				//verificaContexto();
 				redirigePlantelPreferencia();
 			}
 
@@ -199,6 +200,12 @@ public class PestaniasFragment extends Fragment {
 	public void setManejador ( FragmentManager manejador ) {
 		this.manejador = manejador;
 	}
+
+	/*private void verificaContexto (){
+		if ( preferencias == null ){
+			cargaPreferencias();
+		}
+	}*/
 
 	class AdaptadorPestanias extends FragmentPagerAdapter {
 

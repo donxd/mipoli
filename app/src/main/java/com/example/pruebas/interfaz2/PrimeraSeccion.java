@@ -89,6 +89,8 @@ public class PrimeraSeccion extends Fragment {
 
 		String paginaCargar = getPaginaCargar();
 
+		//WebView.setWebContentsDebuggingEnabled( true );
+
 		pagina = (WebView) vista.findViewById(R.id.nav_web);
 		pagina.getSettings().setDomStorageEnabled( true );
 		pagina.getSettings().setBuiltInZoomControls( true );
