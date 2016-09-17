@@ -217,14 +217,14 @@ function ajustaMenu (){
 function ajustaEnlaces (){
 	getElementos( 'a:not([href=""])' ).forEach( function ( elemento ){
 	// getElementos( 'a' ).forEach( function ( elemento ){
-	    if ( elemento != null && 
-	    		elemento.getAttribute( 'href' ) != null && elemento.getAttribute( 'href' ).length > 0 ){
+		if ( elemento != null && 
+				elemento.getAttribute( 'href' ) != null && elemento.getAttribute( 'href' ).length > 0 ){
 
-	    	// elemento.setAttribute( 'style', 'color : #0F0 !important;' );
+			// elemento.setAttribute( 'style', 'color : #0F0 !important;' );
 
-	        // console.log( "enlace : "+ elemento.getAttribute( 'href' ) );
-            procesaEnlace( elemento );
-	    }
+			// console.log( "enlace : "+ elemento.getAttribute( 'href' ) );
+			procesaEnlace( elemento );
+		}
 	});
 }
 
@@ -260,7 +260,7 @@ function procesaEnlace ( enlace ){
 
 function ajustaElementos (){
 	getElementos( SELECTOR_CONTENEDOR_CONTENIDO_PRINCIPAL ).forEach( function ( elemento ){
-	    elemento.style.display = 'table';
+		elemento.style.display = 'table';
 	});
 	getElementos( SELECTOR_ACCESOS_RAPIDOS ).forEach( function ( elemento ){
 		elemento.style.display = 'table-cell';
@@ -469,11 +469,36 @@ function recuperaDatoAlmacenado ( identificadorAlmacenamiento ){
 }
 
 function pantalla_ocupabilidad (){
+	agregaEstilosMostrarOcultar();
+	bloqueaEtiquetas();
+	deshabilitaFiltros();
+	agregaControlesOcupabilidad();
+}
 
+function agregaEstilosMostrarOcultar (){
+	var elementoEstilo = getElementoEstilos();
+	document.getElementsByTagName( 'body' )[ 0 ].appendChild( elementoEstilo );
+}
+
+function getElementoEstilos (){
+	var estilos = document.createElement( 'style' );
+	estilos.innerHTML = '.visible { \
+							display : table-row; \
+						} \
+						.oculto { \
+							display : none; \
+						}';
+
+	return estilos;
+}
+
+function bloqueaEtiquetas (){
 	getElementos( SELECTOR_ETIQUETA_CARRERA + ' , ' + SELECTOR_ETIQUETA_PLAN ).forEach( function ( elemento ){
 		elemento.readOnly = true;
 	});
+}
 
+function deshabilitaFiltros (){
 	if ( getElementos( '[name="ctl00$mainCopy$rblEsquema"]:checked' ).length == 0 ){
 		getElementos(
 			' #ctl00_mainCopy_Chkespecialidad \
@@ -485,14 +510,15 @@ function pantalla_ocupabilidad (){
 			elemento.disabled = true;
 		});
 	}
+}
 
+function agregaControlesOcupabilidad (){
 	getElementos( SELECTOR_CONTENEDOR_OCUPABILIDAD ).forEach( function ( elemento ){
 		if ( elemento.tBodies.length > 0 && elemento.tBodies[ 0 ].rows.length > 1 ){
 			marcaOcupados();
-			// agregaBuscador(1);
+			agregaBuscador( 1 );
 		}
 	});
-
 }
 
 function marcaOcupados (){
@@ -519,6 +545,516 @@ function marcaOcupados (){
 			numRegistros--;
 		}
 
+	}
+}
+
+function agregaBuscador ( tipoBuscador ){
+	var controlesBuscador = getNuevosControlesBuscador();
+
+	var tipo;
+	switch ( tipoBuscador ){
+		case BUSCADOR_OCUPABILIDAD:
+			tipo = ID_CONTENEDOR_OCUPABILIDAD;
+			insertarBotonFiltrarSeleccion( controlesBuscador );
+			insertarBotonActualizarOcupabilidad( controlesBuscador );
+			break;
+		case BUSCADOR_HORARIOS:
+			tipo = ID_CONTENEDOR_HORARIOS;
+			insertarControlExportarImportar( controlesBuscador );
+			break;
+	}
+
+	var elemento = document.getElementById( tipo );
+	elemento.parentNode.insertBefore( controlesBuscador, elemento );
+
+	if ( tipo == ID_CONTENEDOR_HORARIOS ){
+		inicializaControlesHorarios();
+	}
+
+	elemento.setAttribute( 'id', ID_CONTENEDOR_REGISTROS );
+	inicializar();
+}
+
+function getNuevosControlesBuscador (){
+	var controlesBuscador = document.createElement( 'div' );
+	controlesBuscador.innerHTML = 	'<input type="search" placeholder="' + MENSAJE_CONTROL_BUSCAR + '" id="' + ID_CONTROL_BUSCAR + '"/>'+
+									'<input type="button" id="' + ID_CONTROL_VER_TODO + '" value="' + MENSAJE_CONTROL_VER_TODO + '">'+
+									'&nbsp;<span id="' + ID_CONTROL_CONTADOR + '"></span>&nbsp;';
+
+	return controlesBuscador;
+}
+
+function insertarBotonFiltrarSeleccion ( controlesBuscador ){
+	var boton = document.createElement( 'input' );
+	boton.setAttribute( 'type','button' );
+	boton.setAttribute( 'value', CONTROL_FILTRAR_SELECCION );
+	boton.addEventListener( 'click', filtraSeleccion, true );
+
+	controlesBuscador.appendChild( boton );
+}
+
+function filtraSeleccion (){
+	if ( localStorage.horarioMaterias != null && localStorage.horarioMaterias != '' ){
+
+		var listaSeleccion = JSON.parse( localStorage.horarioMaterias );
+		if ( listaSeleccion.materias.length > 0 ){
+
+			var registros = getElemento( SELECTOR_CONTROL_REGISTROS ).rows;
+			var visibles  = getRegistrosVisiblesSeleccion( listaSeleccion, registros );
+			var ocultos   = getRegistrosOcultos( registros, visibles );
+
+			muestraRegistros( visibles, registros );
+			ocultaRegistros( ocultos, registros );
+			respaldaRegistrosVisibles( visibles );
+			contar();
+
+		} else {
+			alert( MENSAJE_SIN_SELECCION );
+		}
+
+	} else {
+		mensajeFiltrado();
+	}
+}
+
+function getRegistrosVisiblesSeleccion ( listaSeleccion, registros ){
+	var visibles = ubicaRegistrosDeLaSeleccion( listaSeleccion, registros );
+	visibles = ordenar( visibles );
+
+	return visibles;
+}
+
+function ubicaRegistrosDeLaSeleccion ( listaSeleccion, registros ){
+	var visibles = new Array();
+
+	for ( var i = 0; i < listaSeleccion.materias.length; i++ ){
+		var registroSeleccion = listaSeleccion.materias[ i ];
+
+		for ( var j = POSICION_INICIO_CONTROL_BUSCADOR; j < registros.length; j++ ){
+			var registroInformacion = registros[ j ];
+
+			if ( validaGrupoMateriaIguales( registroInformacion, registroSeleccion ) ){
+				visibles.push( j );
+			}
+
+		}
+	}
+
+	return visibles;
+}
+
+function validaGrupoMateriaIguales ( registroInformacion, registroSeleccion ){
+	return registroInformacion.cells[ COLUMNA_GRUPO ].innerHTML == registroSeleccion.grupo &&
+						registroInformacion.cells[ COLUMNA_MATERIA ].innerHTML == registroSeleccion.materia;
+}
+
+function ordenar ( datos ){
+
+	var limite = datos.length;
+	var k      = parseInt( limite / 2 );
+
+	var i, j, temp;
+
+	while ( k > 0 ){
+
+		for ( i = k; i <= limite-1; i++ ){
+
+			j = i;
+			while ( j-k >= 0 ){
+
+				if ( datos[ j ] < datos[ j-k ] ){
+
+					temp = datos[ j ];
+
+					datos[ j ]   = datos[ j-k ];
+					datos[ j-k ] = temp;
+
+					j -= k;
+
+				} else {
+					break;
+				}
+			}
+
+		}
+
+		k = parseInt( k / 2 );
+	}
+
+	return datos;
+}
+
+function getRegistrosOcultos ( registros, visibles ){
+	var encontrado;
+	var ocultos = new Array();
+
+	for ( var i = POSICION_INICIO_CONTROL_BUSCADOR; i < registros.length; i++ ){
+		encontrado =  false;
+
+		for ( var j = 0; !encontrado && j < visibles.length; j++ ){
+
+			if ( i == visibles[ j ] ){
+				encontrado = true;
+			}
+
+		}
+
+		if ( !encontrado ){
+			ocultos.push( i );
+		}
+
+	}
+
+	return ocultos;
+}
+
+function muestraRegistros ( visibles, registros ){
+	for ( var j = 0; j < visibles.length; j++ ){
+		registros[ visibles[ j ] ].setAttribute( 'class','visible' );
+	}
+}
+
+function ocultaRegistros ( ocultos, registros ){
+	for ( var j = 0; j < ocultos.length; j++ ){
+		registros[ ocultos[ j ] ].setAttribute( 'class','oculto' );
+	}
+}
+
+function respaldaRegistrosVisibles ( visibles ){
+	document.body.datosVisibles.push( visibles );
+}
+
+function contar (){
+	document.getElementById( ID_CONTROL_CONTADOR ).innerHTML = getNumeroRegistrosVisibles();
+}
+
+function getNumeroRegistrosVisibles (){
+	var visibles = document.body.datosVisibles;
+
+	return visibles[ visibles.length-1 ].length + ' / ' + totalRegistros;
+}
+
+function mensajeFiltrado (){
+	alert( MENSAJE_SIN_SELECCION_DESCRIPCION );
+}
+
+function insertarBotonActualizarOcupabilidad ( controlesBuscador ){
+	var boton = document.createElement( 'input' );
+	boton.setAttribute( 'type','button' );
+	boton.setAttribute( 'value', CONTROL_RECARGAR );
+	boton.setAttribute( 'id','boton_recargar' );
+	boton.addEventListener( 'click', actualizaOcupabilidad2, true );
+
+	controlesBuscador.appendChild( boton );
+}
+
+function actualizaOcupabilidad2 (){
+	// location.reload();
+	document.getElementById( 'ctl00_mainCopy_dpdplan' ).onchange();
+	// androidJs.recargaPagina();
+}
+
+function insertarControlExportarImportar ( controlesBuscador ){
+	controlesBuscador.innerHTML += 	"<input type='button' id='" + ID_CONTROL_EXPIMP + "' value='" + CONTROL_IMPORTAR + "' title='" + MENSAJE_IMPORTAR + "'/>"+
+											"<div id='" + ID_CONTENEDOR_EXPORTAR + "'>"+
+												"<input id='" + ID_CONTROL_IMPORTACION + "' type = 'file'/>"+
+												"<span class='importar'>" + MENSAJE_IMPORTAR_AREA +"</span>"+
+											"</div>";
+}
+
+function inicializaControlesHorarios (){
+	inicializaAreaImportacion();
+	// inicializaControlExportacion();
+	inicializaControlImportacion();
+}
+
+function inicializaAreaImportacion (){
+	document.getElementById( ID_CONTROL_EXPIMP ).addEventListener( 'click', muestraExpImp, true );
+}
+
+// function inicializaControlExportacion (){
+
+// 	var exportar = document.getElementById( ID_CONTENEDOR_EXPORTAR );
+// 	exportar.classList.add( 'oculto' );
+// 	exportar.classList.add( 'fueraImportar' );
+// 	// exportar.addEventListener( 'dragstart',moviendo,false);
+// 	exportar.addEventListener( 'dragenter',sobreImportar,true );
+// 	exportar.addEventListener( 'dragover',colocandoImportar,true );
+// 	exportar.addEventListener( 'drop',ingresandoImportar,true );
+
+// 	//document.getElementById( ID_CONTROL_IMPORTACION ).addEventListener("focus",seleccionarContenido,true);
+// 	if (localStorage.horarioMaterias != null && localStorage.horarioMaterias != "" && localStorage.horarioMaterias != "null" ){
+// 		// document.getElementById( ID_CONTROL_IMPORTACION ).value = localStorage.horarioMaterias;
+// 	}
+
+// }
+
+function muestraExpImp (){
+	var contenedorExportar = document.getElementById( ID_CONTENEDOR_EXPORTAR );
+	if ( contenedorExportar.classList.contains( 'oculto' )){
+		contenedorExportar.classList.remove( 'oculto' );
+		// document.getElementById( ID_CONTROL_IMPORTACION ).focus();
+	} else {
+		contenedorExportar.classList.add( 'oculto' );
+	}
+}
+
+function inicializaControlImportacion (){
+	document.getElementById( ID_CONTROL_IMPORTACION ).addEventListener( 'change', seleccionImportar, true );
+}
+
+function seleccionImportar (){
+	// validaArchivo( this.files[ 0 ] );
+}
+
+var buscador;
+var totalRegistros;
+var totalColumnas;
+var ultimaBusqueda;
+var contador;
+function inicializar (){
+	inicializaControlBuscador();
+	inicializaControlDeshacerBusqueda();
+	inicializaDatos();
+}
+
+function inicializaControlBuscador (){
+	buscador = document.getElementById( ID_CONTROL_BUSCAR );
+
+	buscador.columna = 0;
+	buscador.addEventListener( 'keyup', buscar, true );
+	buscador.addEventListener( 'search', modificaciones, true );
+}
+
+function buscar ( lanzador ){
+
+	var evento       = lanzador || window.event;
+	var codigoTecla  = evento.charCode || evento.keyCode;
+	var textoBuscado = document.getElementById( ID_CONTROL_BUSCAR ).value;
+
+	switch ( codigoTecla ){
+		case CODIGO_TECLA_DELETE:	/*del*/
+		case CODIGO_TECLA_SUPRIMIR: //supr
+
+			ultimaBusqueda = textoBuscado;
+			if ( textoBuscado.length > 0 ){
+
+				var registros = document.getElementById( ID_CONTENEDOR_REGISTROS ).rows;
+				var visiblesControl = document.body.datosVisibles;
+				visiblesControl.pop();
+
+				var visibles = visiblesControl[ visiblesControl.length-1 ];
+				for (var i = 0; i < visibles.length; i++){
+					registros[ visibles[i] ].setAttribute( 'class', 'visible' );
+				}
+				contar();
+
+			} else {
+				verTodo();
+			}
+			break;
+		case CODIGO_TECLA_ENTER: //enter
+			if ( textoBuscado.length > 0 ){
+				buscarTexto( textoBuscado, this.columna );
+				//alert("buscarEnter");//buscarTexto
+			}
+			break;
+		case CODIGO_TECLA_ESCAPE: //escape
+			buscador.value = '';
+			verTodo();
+			break;
+		//~ case 0: //altg*
+		//~ case 16: //shitf-izq*
+		//~ case 17: //ctrl*
+		//~ case 18: //alt*
+		//~ case 20: //mayus*
+		//~ case 35: //fin*
+		//~ case 36: //inicio*
+		//~ case 37: //flecha <*
+		//~ case 39: //flecha >*
+		//~ case 45: //insert*
+		//~ case 91: //super*
+		//~ case 93: //menu*
+			//~ break;
+		default:
+			if ( ultimaBusqueda != textoBuscado ){
+
+				ultimaBusqueda = textoBuscado;
+				if ( textoBuscado.length > 0 ){
+					buscarTexto( textoBuscado, this.columna );
+				}
+			}
+	}
+
+}
+
+function inicializaControlDeshacerBusqueda (){
+	document.getElementById( ID_CONTROL_VER_TODO ).addEventListener( 'click', verTodo, true );
+}
+
+function verTodo (){
+	buscador.value = '';
+	verOcultar( document.getElementById( ID_CONTENEDOR_REGISTROS ).rows, 1, 1 );
+	//document.body.datosVisibles = new Array();
+	while(document.body.datosVisibles.length > 1) document.body.datosVisibles.pop();
+	//document.body.datosOcultos = new Array();
+	contar();
+	ultimaBusqueda = '';
+}
+
+function verOcultar ( datos, inicio, opc ){
+	var tipo = 'oculto';
+	if (opc != 0){
+		tipo = 'visible';
+	}
+
+	var numeroRegistros = datos.length;
+	for ( var i = inicio; i < numeroRegistros; i++ ){
+		datos[ i ].setAttribute( 'class', tipo );
+	}
+	contar();
+}
+
+function buscarTexto ( textoBuscado, columna ){
+	var limite 		= totalColumnas;
+	var ocultos 	= new Array();
+	var visibles 	= new Array();
+	var encontrado;
+
+	if ( columna != 0 ){
+		limite = columna+1;
+	}
+
+	var registrosVisibles = document.body.datosVisibles[ document.body.datosVisibles.length-1 ];
+	var registros = document.getElementById( ID_CONTENEDOR_REGISTROS ).rows;
+
+	//alert('l '+visibles.length);
+	for ( var i = 0; i < registrosVisibles.length; i++ ){
+		encontrado = false;
+
+		for ( var j = columna; j < limite; j++ ){
+
+			// if (buscarDentro(registros[registrosVisibles[i]].cells[j].innerHTML.toUpperCase(),textoBuscado.toUpperCase())){
+			if ( buscarDentro(
+					registros[ registrosVisibles[ i ] ].cells[ j ].innerText.toUpperCase(),
+						textoBuscado.toUpperCase()
+							) ){
+
+				//registros[registrosVisibles[i]].cells[j].style.backgroundColor='blue';
+				encontrado = true;
+				j = limite;
+
+				visibles.push(
+					registros[
+						registrosVisibles[ i ]
+					].numero
+				);
+			}
+		}
+
+		if ( !encontrado ){
+			ocultos.push(
+				registros[
+					registrosVisibles[ i ]
+				].numero
+			);
+		}
+
+	}
+
+	for (var j = 0; j < ocultos.length; j++){
+		registros[ ocultos[ j ] ].setAttribute( 'class','oculto' );
+	}
+
+	document.body.datosVisibles.push( visibles );
+	//document.body.datosOcultos.push(ocultos);
+	contar();
+}
+
+function buscarDentro ( palabra, fragmento ){
+
+	var encontrado = false;
+	if ( palabra.length >= fragmento.length ){
+
+		var i = palabra.indexOf( fragmento.charAt( 0 ) );
+		var limite = palabra.lastIndexOf( fragmento.charAt( fragmento.length-1 ) );
+
+		if ( i != -1 && limite != -1 ){
+
+			if ( fragmento.length < 2 ){
+				encontrado = true;
+			} else {
+
+				while ( i < limite ){
+
+					if ( ( i+fragmento.length-1 ) < palabra.length ){
+
+						if ( palabra.charAt( i+fragmento.length-1 ) == fragmento.charAt( fragmento.length-1 ) ){
+
+							if ( palabra.substring( i,i+fragmento.length ) == fragmento ){
+								encontrado = true;
+								//i=limite;
+								break;
+							}
+
+						}
+
+					}
+					i++;
+
+				}
+
+			}
+
+		}
+
+	}
+
+	return encontrado;
+}
+
+function modificaciones (){
+	if ( this.value.length < 1 ){
+		verTodo();
+	}
+}
+
+function inicializaDatos (){
+	document.body.datosVisibles = new Array();
+	//document.body.datosOcultos = new Array();
+	var registros = document.getElementById( ID_CONTENEDOR_REGISTROS ).rows;
+
+	totalRegistros = (registros.length-1);
+	totalColumnas  = registros[0].cells.length;
+
+	enumerarRegistros( registros, 1 );
+	contador = document.getElementById( 'contador' );
+	buscador.focus();
+}
+
+function enumerarRegistros ( datos, inicio ){
+	var visibles = new Array();
+	var numero = inicio;
+
+	for ( var i = inicio; i <= datos.length-1; i++, numero++ ){
+		datos[ i ].setAttribute( 'class', 'visible' );
+		datos[ i ].numero = numero;
+		visibles.push( numero );
+
+		for ( var j = 0; j < totalColumnas; j++ ){
+			datos[ i ].cells[ j ].addEventListener( 'click', seleccion, false );
+		}
+	}
+
+	document.body.datosVisibles.push( visibles );
+	contar();
+}
+
+var estadoSeleccion = true;
+function seleccion (){
+	if ( estadoSeleccion ){
+		buscador.value = this.innerText;
+		buscarTexto( this.innerText, this.cellIndex );
 	}
 }
 
@@ -574,6 +1110,45 @@ var PAGINA_PRINCIPAL1           = '/default.aspx';
 var PAGINA_PRINCIPAL2           = '/Default.aspx';
 
 var COLUMNA_LUGARES_DISPONIBLES = 6;
+var COLUMNA_GRUPO               = 0;
+var COLUMNA_MATERIA             = 2;
+
+var MENSAJE_CONTROL_BUSCAR   = 'Buscar...';
+var CONTROL_IMPORTAR = 'Importar';
+var CONTROL_RECARGAR = 'Recargar';
+
+var MENSAJE_CONTROL_VER_TODO = 'Ver todo';
+
+var MENSAJE_IMPORTAR      = 'Importar una selección.';
+var MENSAJE_IMPORTAR_AREA = ' ó arrástrelo a esta área.';
+
+var CONTROL_FILTRAR_SELECCION = 'Filtrar selección (Horarios)';
+
+var MENSAJE_SIN_SELECCION             = 'No ha seleccionado ninguna materia.';
+var MENSAJE_SIN_SELECCION_DESCRIPCION = 'No ha seleccionado ninguna materia (Sección de Horarios).';
+
+var BUSCADOR_OCUPABILIDAD = 1;
+var BUSCADOR_HORARIOS     = 2;
+
+var POSICION_INICIO_CONTROL_BUSCADOR = 1;
+
+var ID_CONTROL_CONTADOR    = 'contador';
+var ID_CONTROL_EXPIMP      = 'expImp';
+var ID_CONTROL_IMPORTACION = 'exportarSeleccion';
+var ID_CONTROL_VER_TODO    = 'ver';
+var ID_CONTROL_BUSCAR      = 'buscar';
+
+var ID_CONTENEDOR_EXPORTAR = 'exportar';
+
+var ID_CONTENEDOR_HORARIOS     = 'ctl00_mainCopy_dbgHorarios';
+var ID_CONTENEDOR_OCUPABILIDAD = 'ctl00_mainCopy_GrvOcupabilidad';
+
+var ID_CONTENEDOR_REGISTROS = 'regs';
+
+var CODIGO_TECLA_DELETE   = 8;
+var CODIGO_TECLA_SUPRIMIR = 46;
+var CODIGO_TECLA_ENTER    = 13;
+var CODIGO_TECLA_ESCAPE   = 27;
 
 function iniciar (){
 	try {

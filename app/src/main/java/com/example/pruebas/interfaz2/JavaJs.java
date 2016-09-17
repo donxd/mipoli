@@ -2,6 +2,7 @@ package com.example.pruebas.interfaz2;
 
 import android.util.Log;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
 
 /**
  * Created by pruebas on 8/09/16.
@@ -10,6 +11,8 @@ public class JavaJs {
 
 	private String contenido = "";
 	private boolean estadoBloqueado = false;
+
+	private WebView pagina = null;
 
 	@JavascriptInterface
 	public void guardaContenido ( String contenido ){
@@ -32,5 +35,20 @@ public class JavaJs {
 		}
 
 		return contenido;
+	}
+
+	@JavascriptInterface
+	public void recargaPagina(){
+		if ( pagina != null ){
+			pagina.reload();
+			Log.i( "InfoEx-PuenteApp", "Recargando!!" );
+		}
+
+		Log.i( "InfoEx-PuenteApp", "Recargando2!!" );
+	}
+
+	public void setPagina ( WebView pagina ){
+		this.pagina = pagina;
+		Log.i( "InfoEx-PuenteApp", "pagina - configurada" );
 	}
 }

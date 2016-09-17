@@ -130,6 +130,7 @@ public class PrimeraSeccion extends Fragment {
 
 		});
 
+		javaJs.setPagina( pagina );
 		pagina.addJavascriptInterface( javaJs, "androidJs" );
 		pagina.loadUrl( paginaCargar );
 	}
