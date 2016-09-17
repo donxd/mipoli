@@ -9,8 +9,8 @@ function cambiaTitulo (){
 }
 
 function ajustarDisenio (){
-	// ajustaEstructuraPagina();
-	// ajustaMenu();
+	ajustaEstructuraPagina();
+	ajustaMenu();
 	ajustaEnlaces();
 	ajustaElementos();
 	ajustaColorFondo();
@@ -42,7 +42,7 @@ function getElemento ( selector ){
 
 function mueveSeccionesPagina (){
 	mueveElemento( SELECTOR_COLUMNA_IZQUIERDA, SELECTOR_CONTENIDO_PRINCIPAL, ANTES_DE );
-	mueveElemento( '#footer', SELECTOR_CONTENEDOR_CENTRAL, DENTRO_DE );
+	mueveElemento( SELECTOR_PIE_PAGINA, SELECTOR_CONTENEDOR_CENTRAL, DENTRO_DE );
 	mueveElemento( SELECTOR_CONTENEDOR_NAVEGACION, SELECTOR_CONTENEDOR, ANTES_DE );
 }
 
@@ -197,7 +197,7 @@ function ajustaMenu (){
 				elemento.children[ 1 ].style.paddingLeft = '20px';
 			}
 		});
-		
+
 		getElementos( '#ctl00_subMenu br' ).forEach( function ( elemento ){
 			elemento.parentNode.removeChild( elemento );
 		});
@@ -296,11 +296,14 @@ function getElementoEstilosMenu (){
 
 function detectaPantalla (){
 
-	switch (location.pathname){
-		case '/':
-		case '/default.aspx':
-		case '/Default.aspx':
+	switch ( location.pathname ){
+		case PAGINA_INICIO:
+		case PAGINA_PRINCIPAL1:
+		case PAGINA_PRINCIPAL2:
 			detectaIdentificacion();
+			break;
+		case PAGINA_OCUPABILIDAD:
+			pantalla_ocupabilidad();
 			break;
 	}
 	/*
@@ -320,9 +323,6 @@ function detectaPantalla (){
 			break;
 		case '/Academica/mapa_curricular.aspx':
 			// informacionPlanes();
-			break;
-		case '/Academica/Ocupabilidad_grupos.aspx':
-			pantalla_ocupabilidad();
 			break;
 		case '/Academica/horarios.aspx':
 			pantalla_horarios();
@@ -468,6 +468,60 @@ function recuperaDatoAlmacenado ( identificadorAlmacenamiento ){
 	return dato;
 }
 
+function pantalla_ocupabilidad (){
+
+	getElementos( SELECTOR_ETIQUETA_CARRERA + ' , ' + SELECTOR_ETIQUETA_PLAN ).forEach( function ( elemento ){
+		elemento.readOnly = true;
+	});
+
+	if ( getElementos( '[name="ctl00$mainCopy$rblEsquema"]:checked' ).length == 0 ){
+		getElementos(
+			' #ctl00_mainCopy_Chkespecialidad \
+			, #ctl00_mainCopy_ChkSemestre \
+			, #ctl00_mainCopy_Chkgrupo \
+			, #ctl00_mainCopy_Chkmateria '
+		).forEach( function ( elemento ){
+
+			elemento.disabled = true;
+		});
+	}
+
+	getElementos( SELECTOR_CONTENEDOR_OCUPABILIDAD ).forEach( function ( elemento ){
+		if ( elemento.tBodies.length > 0 && elemento.tBodies[ 0 ].rows.length > 1 ){
+			marcaOcupados();
+			// agregaBuscador(1);
+		}
+	});
+
+}
+
+function marcaOcupados (){
+	var id = SELECTOR_CONTENEDOR_OCUPABILIDAD;
+	if ( getElemento( SELECTOR_CONTROL_REGISTROS ) != null ){
+		id = SELECTOR_CONTROL_REGISTROS;
+	}
+
+	var numRegistros = getElemento( id ).rows.length;
+	var lugares;
+	var registros;
+
+	for ( var i = 1; i < numRegistros; i++ ){
+
+		registros = getElemento( id ).rows;
+		lugares = parseInt( registros[ i ].cells[ COLUMNA_LUGARES_DISPONIBLES ].innerHTML );
+
+		if ( lugares < 1 ){
+			var registro = registros[ i ].cloneNode( true );
+			registro.setAttribute( 'style', 'background-color: black; color: white;' );
+			registros[ i ].parentNode.appendChild( registro );
+			registros[ i ].parentNode.deleteRow( i );
+			i--;
+			numRegistros--;
+		}
+
+	}
+}
+
 var IDENTIFICACION_USUARIO  = 'usuario';
 var IDENTIFICACION_PASSWORD = 'password';
 
@@ -493,6 +547,13 @@ var SELECTOR_CONTENEDOR_NAVEGACION     = '#breadcrumbs';
 var SELECTOR_OPCIONES_SECCIONES = '#subnav > table > tbody > tr > td > table';
 var SELECTOR_CONTENEDOR_DESCENTRALIZADO = '#copy';
 
+var SELECTOR_CONTENEDOR_OCUPABILIDAD = '#ctl00_mainCopy_GrvOcupabilidad';
+var SELECTOR_PIE_PAGINA = '#footer';
+var SELECTOR_CONTROL_REGISTROS = '#regs';
+
+var SELECTOR_ETIQUETA_CARRERA = '#ctl00_mainCopy_txtCarrera';
+var SELECTOR_ETIQUETA_PLAN    = '#ctl00_mainCopy_txtplan';
+
 var DENTRO_DE  = 0;
 var ANTES_DE   = 1;
 var DESPUES_DE = 2;
@@ -507,9 +568,26 @@ var PAGINA_PROFESORES_PRINCIPAL = '/Alumnos/Evaluacion_Docente/Default.aspx';
 var PAGINA_ALUMNOS_GENERAL      = '/Alumnos/info_alumnos/Datos_Alumno.aspx';
 var PAGINA_ALUMNOS_MEDICOS      = '/Alumnos/info_alumnos/DatosAlumnosMedicos.aspx';
 var PAGINA_ALUMNOS_DEPORTIVOS   = '/Alumnos/info_alumnos/DatosAlumnosDeportivos.aspx';
+var PAGINA_OCUPABILIDAD         = '/Academica/Ocupabilidad_grupos.aspx';
+var PAGINA_INICIO               = '/';
+var PAGINA_PRINCIPAL1           = '/default.aspx';
+var PAGINA_PRINCIPAL2           = '/Default.aspx';
 
-androidJs.guardaContenido( 'perro!!' );
+var COLUMNA_LUGARES_DISPONIBLES = 6;
 
-cambiaTitulo();
-ajustarDisenio();
-detectaPantalla();
+function iniciar (){
+	try {
+		androidJs.guardaContenido( 'perro!!' );
+
+		cambiaTitulo();
+		ajustarDisenio();
+		detectaPantalla();
+
+	} catch ( error ){
+		console.log( '@' + error );
+		androidJs.guardaContenido( '@' + error );
+		androidJs.getContenido();
+	}
+}
+
+iniciar();

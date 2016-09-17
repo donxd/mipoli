@@ -195,9 +195,9 @@ public class PrimeraSeccion extends Fragment {
 			cadena.append( "javascript:(function(){" );
 			cadena.append( "var script=document.createElement('script');" );
 			cadena.append( "script.type='text/javascript';" );
-			cadena.append( "script.innerHTML=window.atob('" );
+			cadena.append( "script.innerHTML=decodeURIComponent(escape(window.atob('" );
 			cadena.append( contenidoScript );
-			cadena.append( "');" );
+			cadena.append( "')));" );
 			cadena.append( "document.querySelector('head').appendChild(script);" );
 			cadena.append( "})()" );
 

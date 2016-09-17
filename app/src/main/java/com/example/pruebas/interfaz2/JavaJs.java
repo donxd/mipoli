@@ -18,13 +18,14 @@ public class JavaJs {
 			this.contenido = contenido;
 			Log.i( "InfoEx-PuenteApp", "Valor asignado : [" + contenido + "]" );
 
-			estadoBloqueado = true;
+			//estadoBloqueado = true;
 		}
 
 	}
 
+	@JavascriptInterface
 	public String getContenido (){
-		if ( estadoBloqueado ){
+		if ( estadoBloqueado || contenido != null ){
 			Log.i( "InfoEx-PuenteApp", "Valor guardado : [" + contenido + "]" );
 		} else {
 			Log.i( "InfoEx-PuenteApp", "Valor guardado : [N/A]" );
