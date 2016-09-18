@@ -308,13 +308,13 @@ function detectaPantalla (){
 		case PAGINA_KARDEX:
 			pantallaKardex();
 			break;
+		case PAGINA_EQUIVALENCIAS:
+			pantallaEquivalencias();
+			break;
 	}
 	/*
 	case '/alumnos/default.aspx':
 			pantalla_alumnos_inicio();
-			break;
-		case '/Academica/Equivalencias.aspx':
-			pantalla_equivalencias();
 			break;
 		case '/Alumnos/Evaluacion_docente/califica_profe.aspx':
 		case '/Alumnos/Evaluacion_Docente/Califica_Profe.aspx':
@@ -1138,6 +1138,25 @@ function log ( mensaje ){
 	console.log( mensaje );
 }
 
+function pantallaEquivalencias (){
+	document.getElementById( ID_CONTENEDOR_EQUIVALENCIAS ).addEventListener( 'DOMSubtreeModified', ajustaEquivalencias, true );
+
+	getElementos( SELECTOR_LISTADO_EQUIVALENCIAS ).forEach( function ( elemento ){
+		elemento.removeAttribute( 'style' );
+	});
+}
+
+function ajustaEquivalencias (){
+	getElementos( SELECTOR_TABLA_EQUIVALENCIAS ).forEach( function ( elemento ){
+		elemento.style.width = 'auto';
+	});
+
+	getElementos( SELECTOR_LISTADO_EQUIVALENCIAS ).forEach( function ( elemento ){
+		elemento.removeAttribute( 'style' );
+		elemento.parentNode.removeAttribute( 'style' );
+	});
+}
+
 var IDENTIFICACION_USUARIO  = 'usuario';
 var IDENTIFICACION_PASSWORD = 'password';
 
@@ -1172,6 +1191,9 @@ var SELECTOR_ETIQUETA_PLAN    = '#ctl00_mainCopy_txtplan';
 
 var SELECTOR_GRUPO_CALIFICACIONES = '#ctl00_mainCopy_Lbl_Kardex table';
 
+var SELECTOR_LISTADO_EQUIVALENCIAS = '#ctl00_mainCopy_PnlDatos';
+var SELECTOR_TABLA_EQUIVALENCIAS   = '#ctl00_mainCopy_GV_EquivalenciasA';
+
 var DENTRO_DE  = 0;
 var ANTES_DE   = 1;
 var DESPUES_DE = 2;
@@ -1191,6 +1213,7 @@ var PAGINA_INICIO               = '/';
 var PAGINA_PRINCIPAL1           = '/default.aspx';
 var PAGINA_PRINCIPAL2           = '/Default.aspx';
 var PAGINA_KARDEX               = '/Alumnos/boleta/kardex.aspx';
+var PAGINA_EQUIVALENCIAS        = '/Academica/Equivalencias.aspx';
 
 var COLUMNA_LUGARES_DISPONIBLES = 6;
 var COLUMNA_GRUPO               = 0;
@@ -1223,9 +1246,10 @@ var ID_CONTROL_BUSCAR      = 'buscar';
 
 var ID_CONTENEDOR_EXPORTAR = 'exportar';
 
-var ID_CONTENEDOR_HORARIOS     = 'ctl00_mainCopy_dbgHorarios';
-var ID_CONTENEDOR_OCUPABILIDAD = 'ctl00_mainCopy_GrvOcupabilidad';
-var ID_CONTENEDOR_KARDEX       = 'ctl00_mainCopy_Panel1';
+var ID_CONTENEDOR_HORARIOS      = 'ctl00_mainCopy_dbgHorarios';
+var ID_CONTENEDOR_OCUPABILIDAD  = 'ctl00_mainCopy_GrvOcupabilidad';
+var ID_CONTENEDOR_KARDEX        = 'ctl00_mainCopy_Panel1';
+var ID_CONTENEDOR_EQUIVALENCIAS = 'ctl00_mainCopy_UP';
 
 var ID_CONTENEDOR_CENTRAL = 'contentwrapper';
 var ID_ACCESOS_RAPIDOS    = 'rightcolumn';
