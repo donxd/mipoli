@@ -303,7 +303,10 @@ function detectaPantalla (){
 			detectaIdentificacion();
 			break;
 		case PAGINA_OCUPABILIDAD:
-			pantalla_ocupabilidad();
+			pantallaOcupabilidad();
+			break;
+		case PAGINA_KARDEX:
+			pantallaKardex();
 			break;
 	}
 	/*
@@ -338,9 +341,6 @@ function detectaPantalla (){
 			break;
 		case '/Alumnos/Reinscripciones/reinscribir.aspx':
 			pantalla_reinscribir();
-			break;
-		case '/Alumnos/boleta/kardex.aspx':
-			pantalla_kardex();
 			break;
 		case '/Alumnos/tutores/Evaluacion_Tutores.aspx':
 			pantalla_evaluacion_tutores();
@@ -468,7 +468,7 @@ function recuperaDatoAlmacenado ( identificadorAlmacenamiento ){
 	return dato;
 }
 
-function pantalla_ocupabilidad (){
+function pantallaOcupabilidad (){
 	agregaEstilosMostrarOcultar();
 	bloqueaEtiquetas();
 	deshabilitaFiltros();
@@ -833,8 +833,8 @@ function buscar ( lanzador ){
 	var textoBuscado = document.getElementById( ID_CONTROL_BUSCAR ).value;
 
 	switch ( codigoTecla ){
-		case CODIGO_TECLA_DELETE:	/*del*/
-		case CODIGO_TECLA_SUPRIMIR: //supr
+		case CODIGO_TECLA_DELETE:
+		case CODIGO_TECLA_SUPRIMIR:
 
 			ultimaBusqueda = textoBuscado;
 			if ( textoBuscado.length > 0 ){
@@ -853,13 +853,13 @@ function buscar ( lanzador ){
 				verTodo();
 			}
 			break;
-		case CODIGO_TECLA_ENTER: //enter
+		case CODIGO_TECLA_ENTER:
 			if ( textoBuscado.length > 0 ){
 				buscarTexto( textoBuscado, this.columna );
 				//alert("buscarEnter");//buscarTexto
 			}
 			break;
-		case CODIGO_TECLA_ESCAPE: //escape
+		case CODIGO_TECLA_ESCAPE:
 			buscador.value = '';
 			verTodo();
 			break;
@@ -916,9 +916,9 @@ function verOcultar ( datos, inicio, opc ){
 }
 
 function buscarTexto ( textoBuscado, columna ){
-	var limite 		= totalColumnas;
-	var ocultos 	= new Array();
-	var visibles 	= new Array();
+	var limite   = totalColumnas;
+	var ocultos  = new Array();
+	var visibles = new Array();
 	var encontrado;
 
 	if ( columna != 0 ){
@@ -1024,8 +1024,8 @@ function inicializaDatos (){
 	//document.body.datosOcultos = new Array();
 	var registros = document.getElementById( ID_CONTENEDOR_REGISTROS ).rows;
 
-	totalRegistros = (registros.length-1);
-	totalColumnas  = registros[0].cells.length;
+	totalRegistros = registros.length-1;
+	totalColumnas  = registros[ 0 ].cells.length;
 
 	enumerarRegistros( registros, 1 );
 	contador = document.getElementById( 'contador' );
@@ -1056,6 +1056,86 @@ function seleccion (){
 		buscador.value = this.innerText;
 		buscarTexto( this.innerText, this.cellIndex );
 	}
+}
+
+function pantallaKardex (){
+	ajustaDisenioKardex();
+	agregaTamanioMinimoContenido();
+	ajustaDisenioGrupoCalificaciones();
+	// informacionHistorico();
+}
+
+function ajustaDisenioKardex (){
+	document.getElementById( ID_CONTENEDOR_KARDEX ).removeAttribute( 'style' );
+
+	var contenedorCentral = document.getElementById( ID_CONTENEDOR_CENTRAL );
+	if ( contenedorCentral.children.length < 3 ){
+
+		var accesosRapidos = document.getElementById( ID_ACCESOS_RAPIDOS );
+		var parteIzquierda = accesosRapidos.cloneNode( true );
+		accesosRapidos.parentNode.removeChild( accesosRapidos );
+		contenedorCentral.appendChild( parteIzquierda );
+
+		var elementoPiePagina = document.getElementById( ID_PIE_PAGINA );
+		var piePagina = elementoPiePagina.cloneNode( true );
+		elementoPiePagina.parentNode.removeChild( elementoPiePagina );
+		contenedorCentral.appendChild( piePagina );
+
+		var opcionesMenu = document.getElementById( ID_OPCIONES_MENU );
+		var parteDerecha = opcionesMenu.cloneNode( true );
+		opcionesMenu.parentNode.removeChild( opcionesMenu );
+		document.getElementById( ID_CONTENIDO_CENTRAL ).appendChild( parteDerecha );
+
+		ajustaPeriodos();
+	}
+}
+
+function agregaTamanioMinimoContenido (){
+	getElementos( SELECTOR_CONTENEDOR ).forEach( function ( elemento ){
+		elemento.setAttribute( 'style', 'min-width: 680px;' );
+	});
+}
+
+function ajustaDisenioGrupoCalificaciones (){
+	getElementos( SELECTOR_GRUPO_CALIFICACIONES ).forEach( function ( elemento ){
+		elemento.setAttribute( 'style', 'border-collapse : collapse;' );
+	});
+}
+
+function informacionHistorico (){
+	var salidaInformacionHistorico = 'clave,materia,fecha,periodo,feval,calif\n';
+	getElementos( SELECTOR_GRUPO_CALIFICACIONES ).forEach( function ( elemento ){
+
+		if ( elemento.rows[ 0 ].cells[ 0 ].getAttribute( 'colspan' ) == 6 ){
+			for ( var j = 2; j <  elemento.rows.length; j++ ){
+
+				if ( elemento.rows[ j ].cells.length > 5 ) {
+					salidaInformacionHistorico += "'"+
+						elemento.rows[ j ].cells[ 0 ].innerHTML + "','" +
+						elemento.rows[ j ].cells[ 1 ].innerHTML + "','" +
+						elemento.rows[ j ].cells[ 2 ].innerHTML + "','" +
+						elemento.rows[ j ].cells[ 3 ].innerHTML + "','" +
+						elemento.rows[ j ].cells[ 4 ].innerHTML + "','" +
+						elemento.rows[ j ].cells[ 5 ].innerHTML + "'\n";
+				} else {
+					salidaInformacionHistorico += "'"+ 
+						elemento.rows[ j ].cells[ 0 ].innerHTML + "','" + 
+						elemento.rows[ j ].cells[ 1 ].innerHTML + "','" + 
+						elemento.rows[ j ].cells[ 2 ].innerHTML + "','" + 
+						elemento.rows[ j ].cells[ 3 ].innerHTML + "','" + 
+						elemento.rows[ j ].cells[ 4 ].innerHTML + "'\n";
+				}
+
+			}
+		}
+
+	});
+
+	log( '->' + salidaInformacionHistorico );
+}
+
+function log ( mensaje ){
+	console.log( mensaje );
 }
 
 var IDENTIFICACION_USUARIO  = 'usuario';
@@ -1090,6 +1170,8 @@ var SELECTOR_CONTROL_REGISTROS = '#regs';
 var SELECTOR_ETIQUETA_CARRERA = '#ctl00_mainCopy_txtCarrera';
 var SELECTOR_ETIQUETA_PLAN    = '#ctl00_mainCopy_txtplan';
 
+var SELECTOR_GRUPO_CALIFICACIONES = '#ctl00_mainCopy_Lbl_Kardex table';
+
 var DENTRO_DE  = 0;
 var ANTES_DE   = 1;
 var DESPUES_DE = 2;
@@ -1108,6 +1190,7 @@ var PAGINA_OCUPABILIDAD         = '/Academica/Ocupabilidad_grupos.aspx';
 var PAGINA_INICIO               = '/';
 var PAGINA_PRINCIPAL1           = '/default.aspx';
 var PAGINA_PRINCIPAL2           = '/Default.aspx';
+var PAGINA_KARDEX               = '/Alumnos/boleta/kardex.aspx';
 
 var COLUMNA_LUGARES_DISPONIBLES = 6;
 var COLUMNA_GRUPO               = 0;
@@ -1142,6 +1225,13 @@ var ID_CONTENEDOR_EXPORTAR = 'exportar';
 
 var ID_CONTENEDOR_HORARIOS     = 'ctl00_mainCopy_dbgHorarios';
 var ID_CONTENEDOR_OCUPABILIDAD = 'ctl00_mainCopy_GrvOcupabilidad';
+var ID_CONTENEDOR_KARDEX       = 'ctl00_mainCopy_Panel1';
+
+var ID_CONTENEDOR_CENTRAL = 'contentwrapper';
+var ID_ACCESOS_RAPIDOS    = 'rightcolumn';
+var ID_PIE_PAGINA         = 'footer';
+var ID_OPCIONES_MENU      = 'leftcolumn';
+var ID_CONTENIDO_CENTRAL  = 'floatwrapper';
 
 var ID_CONTENEDOR_REGISTROS = 'regs';
 
