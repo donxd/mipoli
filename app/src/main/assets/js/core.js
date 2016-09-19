@@ -311,6 +311,12 @@ function detectaPantalla (){
 		case PAGINA_EQUIVALENCIAS:
 			pantallaEquivalencias();
 			break;
+		case PAGINA_CALENDARIO_PARCIALES:
+			pantallaParcialesCalendario();
+			break;
+		case PAGINA_INSCRIPCION_ACTUAL_HORARIO:
+			pantallaInscripcionActualHorario();
+			break;
 	}
 	/*
 	case '/alumnos/default.aspx':
@@ -330,14 +336,8 @@ function detectaPantalla (){
 		case '/Academica/horarios.aspx':
 			pantalla_horarios();
 			break;
-		case '/Academica/Calendario.aspx':
-			pantalla_calendario();
-			break;
 		case '/Alumnos/Reinscripciones/Comprobante_Horario.aspx':
 			horarioDirecto();
-			break;
-		case '/Alumnos/Informacion_semestral/Horario_Alumno.aspx':
-			pantalla_horario_alumno();
 			break;
 		case '/Alumnos/Reinscripciones/reinscribir.aspx':
 			pantalla_reinscribir();
@@ -531,7 +531,7 @@ function marcaOcupados (){
 	var lugares;
 	var registros;
 
-	for ( var i = 1; i < numRegistros; i++ ){
+	for ( var i = POSICION_INICIO_REGISTROS; i < numRegistros; i++ ){
 
 		registros = getElemento( id ).rows;
 		lugares = parseInt( registros[ i ].cells[ COLUMNA_LUGARES_DISPONIBLES ].innerHTML );
@@ -1157,6 +1157,229 @@ function ajustaEquivalencias (){
 	});
 }
 
+function pantallaParcialesCalendario (){
+	if ( getElementos( '[name="ctl00$mainCopy$rdlconsulta"]:checked' ).length == 0 ){
+		document.getElementById( ID_CONTROL_PARCIAL ).disabled = true;
+	}
+}
+
+function pantallaInscripcionActualHorario (){
+	ajustaDisenioInscripcionActualHorario();
+	retiraSabados();
+	conexionDiccionario();
+	comentarioRapido();
+}
+
+function ajustaDisenioInscripcionActualHorario (){
+	document.getElementById( ID_CONTENEDOR_PAGINA )   .style.width = '1200px';
+	document.getElementById( ID_CONTENEDOR_CENTRAL )  .style.width = '900px';
+	document.getElementById( ID_CONTENIDO_CENTRAL )   .style.width = '900px';
+	document.getElementById( ID_SUBCONTENIDO_CENTRAL ).style.width = '900px';
+
+	document.getElementById( ID_CONTENIDO_INFORMACION ).setAttribute( 'style', 'width:820px;' );
+	document.getElementById( ID_TABLA_HORARIO_ACTUAL ) .setAttribute( 'id', ID_CONTENEDOR_REGISTROS );
+}
+
+var sabadoActivo = false;
+function retiraSabados (){
+	var tabla = document.getElementById( ID_CONTENEDOR_REGISTROS );
+
+	if ( validaContenidoColumnaSabado( tabla ) ){
+		eliminaColumnaDiaSabado( tabla );
+	} else {
+		sabadoActivo = true;
+	}
+}
+
+function validaContenidoColumnaSabado ( tabla ){
+
+	for ( var i = POSICION_INICIO_REGISTROS; i < tabla.rows.length; i++ ){
+		if ( validaRegistroColumnaSabado( tabla.rows[ i ] ) ){
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function validaRegistroColumnaSabado ( registro ){
+	var valorColumnaSabado = registro.cells[ COLUMNA_DIA_SABADO ].innerHTML;
+	if ( valorColumnaSabado != null ){
+		valorColumnaSabado = valorColumnaSabado.trim();
+	}
+
+	return valorColumnaSabado.length > 0 && valorColumnaSabado != '&nbsp;'
+}
+
+function eliminaColumnaDiaSabado ( tabla ){
+	totalColumnas--;
+	for ( var i = 0; i < tabla.rows.length; i++ ){
+		tabla.rows[ i ].deleteCell( COLUMNA_DIA_SABADO );
+	}
+}
+
+var destinoConexion = '';
+function conexionDiccionario (){
+	var plantel = getNombrePlantelPagina();
+	switch ( plantel ){
+		case 'cecyt1':
+		case 'cecyt2':
+		case 'cecyt3':
+		case 'cecyt4':
+		case 'cecyt5':
+		case 'cecyt6':
+		case 'cecyt7':
+		case 'cecyt8':
+		case 'cecyt9':
+		case 'cecyt10':
+		case 'cecyt11':
+		case 'cecyt12':
+		case 'cecyt13':
+		case 'cecyt14':
+		case 'cecyt15':
+		case 'cet1':
+		case 'esimeazc':
+		case 'esimecu':
+		case 'esimetic':
+		case 'esimez':
+		case 'esiatec':
+		case 'esiatic':
+		case 'esiaz':
+		case 'cicsma':
+		case 'cicsst':
+		case 'escasto':
+		case 'escatep':
+		case 'encb':
+		case 'enmh':
+		case 'eseo':
+		case 'esm':
+		case 'ese':
+		case 'est':
+		case 'upibi':
+		case 'upiita':
+		case 'escom':
+		case 'esfm':
+		case 'esiqie':
+		case 'esit':
+		case 'upiig':
+			destinoConexion = 'http://diccionariodemaestros.com/' + plantel;
+			break;
+		case 'upiicsa':
+			destinoConexion = 'http://foroupiicsa.net/diccionario/';
+			break;
+		default:
+			// alert(chrome.i18n.getMessage("campus_not_found"));
+			break;
+	}
+}
+
+function getNombrePlantelPagina (){
+	var direccionPagina = location.host;
+
+	return direccionPagina.substring( 
+		  POSICION_INICIO_NOMBRE_PLANTEL
+		, direccionPagina.lastIndexOf('.ipn')
+	);
+}
+
+function comentarioRapido (){
+	if ( destinoConexion != '' ){
+		insertaControlComentarioRapido();
+		agregaEnlacesComentariosRapidos();
+		agregaComportamientoEnlacesComentariosRapidos();
+	}
+}
+
+function insertaControlComentarioRapido (){
+	var controlComentarioRapido = getControlComentarioRapido();
+	document.body.appendChild( controlComentarioRapido );
+}
+
+function getControlComentarioRapido (){
+	var controlComentarioRapido = document.createElement( 'form' );
+
+	controlComentarioRapido.setAttribute( 'id'     , ID_CONTROL_COMENTARIO_RAPIDO );
+	controlComentarioRapido.setAttribute( 'action' , destinoConexion );
+	controlComentarioRapido.setAttribute( 'target' , '_blank' );
+	controlComentarioRapido.setAttribute( 'method' , 'POST' );
+
+	controlComentarioRapido
+		.innerHTML = 
+			'<input type="hidden" name="profesor" id="' + ID_COMENTARIO_PROFESOR + '" />' +
+			'<input type="hidden" name="materia" id="' + ID_COMENTARIO_MATERIA + '" />';
+
+	return controlComentarioRapido;
+}
+
+function agregaEnlacesComentariosRapidos (){
+	var enlaces = document.getElementById( ID_CONTENEDOR_REGISTROS );
+	var registroTitulos = enlaces.rows[ POSICION_TITULOS ];
+	var posicionNuevaColumna = registroTitulos.cells.length;
+
+	agregaColumnaTitulosComentarios( registroTitulos, posicionNuevaColumna );
+	generaEnlacesComentariosRapidos( enlaces, posicionNuevaColumna );
+}
+
+function agregaColumnaTitulosComentarios ( registroTitulos, posicionNuevaColumna ){
+	registroTitulos.insertCell( posicionNuevaColumna );
+	registroTitulos.cells[ posicionNuevaColumna ].innerHTML = MENSAJE_COLUMNA_COMENTARIOS;
+}
+
+function generaEnlacesComentariosRapidos ( enlaces, posicionNuevaColumna ){
+	var registro;
+	var nombreProfesor;
+
+	for ( var i = POSICION_INICIO_REGISTROS; i < enlaces.rows.length; i++ ){
+		registro = enlaces.rows[ i ];
+
+		registro.insertCell( posicionNuevaColumna );
+		nombreProfesor = getNombreProfesor( registro );
+
+		if ( validaNombreProfesor( nombreProfesor ) ){
+			agregaEnlaceComentarioRapido( registro, posicionNuevaColumna );
+		}
+	}
+}
+
+function getNombreProfesor ( registro ){
+	var nombreProfesor = registro.cells[ COLUMNA_PROFESOR ].innerHTML;
+	if ( nombreProfesor != null ){
+		nombreProfesor = nombreProfesor.trim();
+	}
+
+	return nombreProfesor;
+}
+
+function validaNombreProfesor ( nombreProfesor ){
+	return nombreProfesor.length > 0 && 
+						nombreProfesor != '&nbsp;'
+}
+
+function agregaEnlaceComentarioRapido ( registro, posicionNuevaColumna ){
+	registro.cells[ posicionNuevaColumna ]
+		.innerHTML = '<a href="#" name="' + NOMBRE_ELEMENTOS_COMENTARIO_RAPIDO + '">#</a>';
+}
+
+function agregaComportamientoEnlacesComentariosRapidos (){
+	var enlaces = document.getElementsByName( NOMBRE_ELEMENTOS_COMENTARIO_RAPIDO );
+	for ( var i = 0; i < enlaces.length; i++ ){
+		enlaces[ i ].addEventListener( 'click', enlaceComentar, true );
+	}
+}
+
+function enlaceComentar (){
+	var posicion = getPosicionEnlace( this );
+	var registro = document.getElementById( ID_CONTENEDOR_REGISTROS ).rows[ posicion ];
+
+	document.getElementsByName( 'profesor' )[0].value = registro.cells[ COLUMNA_PROFESOR ].innerHTML;
+	document.getElementsByName( 'materia' )[0].value  = registro.cells[ COLUMNA_MATERIA2 ].innerHTML;
+	document.getElementById( ID_CONTROL_COMENTARIO_RAPIDO ).submit();
+}
+
+function getPosicionEnlace ( enlace ){
+	return enlace.parentNode.parentNode.rowIndex;
+}
+
 var IDENTIFICACION_USUARIO  = 'usuario';
 var IDENTIFICACION_PASSWORD = 'password';
 
@@ -1200,24 +1423,29 @@ var DESPUES_DE = 2;
 
 var ENLACE_REGLAMENTO = 'http://www.contenido.ccs.ipn.mx/G-866-2011-E.pdf';
 
-var PAGINA_ETS_PRINCIPAL        = '/Alumnos/ETS/default.aspx';
-var PAGINA_REGLAMENTO           = '/Reglamento/Default.aspx';
-var PAGINA_SPA_PRINCIPAL        = '/Alumnos/Saberes/DEFAULT.ASPX';
-var PAGINA_SPA_INSCRIPCION      = '/Alumnos/Saberes/Inscripcion_Saberes.aspx';
-var PAGINA_PROFESORES_PRINCIPAL = '/Alumnos/Evaluacion_Docente/Default.aspx';
-var PAGINA_ALUMNOS_GENERAL      = '/Alumnos/info_alumnos/Datos_Alumno.aspx';
-var PAGINA_ALUMNOS_MEDICOS      = '/Alumnos/info_alumnos/DatosAlumnosMedicos.aspx';
-var PAGINA_ALUMNOS_DEPORTIVOS   = '/Alumnos/info_alumnos/DatosAlumnosDeportivos.aspx';
-var PAGINA_OCUPABILIDAD         = '/Academica/Ocupabilidad_grupos.aspx';
-var PAGINA_INICIO               = '/';
-var PAGINA_PRINCIPAL1           = '/default.aspx';
-var PAGINA_PRINCIPAL2           = '/Default.aspx';
-var PAGINA_KARDEX               = '/Alumnos/boleta/kardex.aspx';
-var PAGINA_EQUIVALENCIAS        = '/Academica/Equivalencias.aspx';
+var PAGINA_ETS_PRINCIPAL              = '/Alumnos/ETS/default.aspx';
+var PAGINA_REGLAMENTO                 = '/Reglamento/Default.aspx';
+var PAGINA_SPA_PRINCIPAL              = '/Alumnos/Saberes/DEFAULT.ASPX';
+var PAGINA_SPA_INSCRIPCION            = '/Alumnos/Saberes/Inscripcion_Saberes.aspx';
+var PAGINA_PROFESORES_PRINCIPAL       = '/Alumnos/Evaluacion_Docente/Default.aspx';
+var PAGINA_ALUMNOS_GENERAL            = '/Alumnos/info_alumnos/Datos_Alumno.aspx';
+var PAGINA_ALUMNOS_MEDICOS            = '/Alumnos/info_alumnos/DatosAlumnosMedicos.aspx';
+var PAGINA_ALUMNOS_DEPORTIVOS         = '/Alumnos/info_alumnos/DatosAlumnosDeportivos.aspx';
+var PAGINA_OCUPABILIDAD               = '/Academica/Ocupabilidad_grupos.aspx';
+var PAGINA_INICIO                     = '/';
+var PAGINA_PRINCIPAL1                 = '/default.aspx';
+var PAGINA_PRINCIPAL2                 = '/Default.aspx';
+var PAGINA_KARDEX                     = '/Alumnos/boleta/kardex.aspx';
+var PAGINA_EQUIVALENCIAS              = '/Academica/Equivalencias.aspx';
+var PAGINA_CALENDARIO_PARCIALES       = '/Academica/Calendario.aspx';
+var PAGINA_INSCRIPCION_ACTUAL_HORARIO = '/Alumnos/Informacion_semestral/Horario_Alumno.aspx';
 
 var COLUMNA_LUGARES_DISPONIBLES = 6;
 var COLUMNA_GRUPO               = 0;
 var COLUMNA_MATERIA             = 2;
+var COLUMNA_DIA_SABADO          = 10;
+var COLUMNA_PROFESOR            = 2;
+var COLUMNA_MATERIA2            = 1;
 
 var MENSAJE_CONTROL_BUSCAR   = 'Buscar...';
 var CONTROL_IMPORTAR = 'Importar';
@@ -1227,6 +1455,8 @@ var MENSAJE_CONTROL_VER_TODO = 'Ver todo';
 
 var MENSAJE_IMPORTAR      = 'Importar una selección.';
 var MENSAJE_IMPORTAR_AREA = ' ó arrástrelo a esta área.';
+
+var MENSAJE_COLUMNA_COMENTARIOS = 'Comentar';
 
 var CONTROL_FILTRAR_SELECCION = 'Filtrar selección (Horarios)';
 
@@ -1244,25 +1474,40 @@ var ID_CONTROL_IMPORTACION = 'exportarSeleccion';
 var ID_CONTROL_VER_TODO    = 'ver';
 var ID_CONTROL_BUSCAR      = 'buscar';
 
+var ID_CONTROL_COMENTARIO_RAPIDO = 'formularioEnlace';
+
 var ID_CONTENEDOR_EXPORTAR = 'exportar';
 
 var ID_CONTENEDOR_HORARIOS      = 'ctl00_mainCopy_dbgHorarios';
 var ID_CONTENEDOR_OCUPABILIDAD  = 'ctl00_mainCopy_GrvOcupabilidad';
 var ID_CONTENEDOR_KARDEX        = 'ctl00_mainCopy_Panel1';
 var ID_CONTENEDOR_EQUIVALENCIAS = 'ctl00_mainCopy_UP';
+var ID_CONTROL_PARCIAL          = 'ctl00_mainCopy_dpdnombrecaptura';
+var ID_CONTENIDO_INFORMACION    = 'ctl00_mainCopy_PnlDatos';
+var ID_TABLA_HORARIO_ACTUAL     = 'ctl00_mainCopy_GV_Horario';
 
-var ID_CONTENEDOR_CENTRAL = 'contentwrapper';
-var ID_ACCESOS_RAPIDOS    = 'rightcolumn';
-var ID_PIE_PAGINA         = 'footer';
-var ID_OPCIONES_MENU      = 'leftcolumn';
-var ID_CONTENIDO_CENTRAL  = 'floatwrapper';
+var ID_CONTENEDOR_CENTRAL   = 'contentwrapper';
+var ID_ACCESOS_RAPIDOS      = 'rightcolumn';
+var ID_PIE_PAGINA           = 'footer';
+var ID_OPCIONES_MENU        = 'leftcolumn';
+var ID_CONTENIDO_CENTRAL    = 'floatwrapper';
+var ID_SUBCONTENIDO_CENTRAL = 'centercolumn';
+var ID_CONTENEDOR_PAGINA    = 'wrapper';
 
 var ID_CONTENEDOR_REGISTROS = 'regs';
+var ID_COMENTARIO_PROFESOR = 'comentarioProfesor';
+var ID_COMENTARIO_MATERIA = 'comentarioMateria';
 
 var CODIGO_TECLA_DELETE   = 8;
 var CODIGO_TECLA_SUPRIMIR = 46;
 var CODIGO_TECLA_ENTER    = 13;
 var CODIGO_TECLA_ESCAPE   = 27;
+
+var POSICION_INICIO_NOMBRE_PLANTEL = 9;
+var POSICION_TITULOS = 0;
+var POSICION_INICIO_REGISTROS = 1;
+
+var NOMBRE_ELEMENTOS_COMENTARIO_RAPIDO = 'diccionario';
 
 function iniciar (){
 	try {
