@@ -11,8 +11,10 @@ public class JavaJs {
 
 	private String contenido = "";
 	private boolean estadoBloqueado = false;
+	private int opcionNavegacion = 0;
 
 	private WebView pagina = null;
+	private PrimeraSeccion primeraSeccion = null;
 
 	@JavascriptInterface
 	public void guardaContenido ( String contenido ){
@@ -51,4 +53,25 @@ public class JavaJs {
 		this.pagina = pagina;
 		Log.i( "InfoEx-PuenteApp", "pagina - configurada" );
 	}
+
+	public void setPrimeraSeccion ( PrimeraSeccion primeraSeccion ){
+		this.primeraSeccion = primeraSeccion;
+		Log.i( "InfoEx-PuenteApp", "controlador Android - configurado" );
+	}
+
+	@JavascriptInterface
+	public int getOpcionNavegacion (){
+		if ( pagina != null ){
+
+			return primeraSeccion.getOpcionNavegacion();
+		}
+
+		return 0;
+	}
+
+	@JavascriptInterface
+	public void setOpcionNavegacion ( int opcion ){
+		primeraSeccion.setOpcionNavegacion( opcion );
+	}
+
 }

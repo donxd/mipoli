@@ -1,11 +1,7 @@
 NodeList.prototype.forEach = Array.prototype.forEach;
 
-function cambiaTitulo (){
-	getElementos( 'h2' ).forEach( function ( elemento ){
-		elemento.innerHTML = 'aksjdlfkasdf';
-	});
-
-	console.log( 'lasjfdkalsjfd' );
+HTMLElement.prototype.agregaElementoAlFinal = function ( elemento ){
+	this.parentNode.appendChild( elemento );
 }
 
 function ajustarDisenio (){
@@ -272,8 +268,17 @@ function ajustaColorFondo (){
 	var elemento = getElemento( 'body' );
 	elemento.setAttribute(
 		  'style'
-		, 'text-align: center; background-image : none !important; background-repeat: initial !important; background-color: #802434 !important; font-family: Verdana, Geneva, Arial, Helvetica, sans-serif; font-size: 0.78em; '
+		, getEstiloFondoPagina()
 	);
+}
+
+function getEstiloFondoPagina (){
+	return 	'text-align: center;'+
+			'background-image : none !important;'+
+			'background-repeat: initial !important;'+
+			'background-color: #802434 !important;'+
+			'font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;'+
+			'font-size: 0.78em; '
 }
 
 function getElementos ( selector ){
@@ -296,53 +301,88 @@ function getElementoEstilosMenu (){
 
 function detectaPantalla (){
 
-	switch ( location.pathname ){
-		case PAGINA_INICIO:
-		case PAGINA_PRINCIPAL1:
-		case PAGINA_PRINCIPAL2:
-			detectaIdentificacion();
-			break;
-		case PAGINA_OCUPABILIDAD:
-			pantallaOcupabilidad();
-			break;
-		case PAGINA_KARDEX:
-			pantallaKardex();
-			break;
-		case PAGINA_EQUIVALENCIAS:
-			pantallaEquivalencias();
-			break;
-		case PAGINA_CALENDARIO_PARCIALES:
-			pantallaParcialesCalendario();
-			break;
-		case PAGINA_INSCRIPCION_ACTUAL_HORARIO:
-			pantallaInscripcionActualHorario();
-			break;
-		case PAGINA_ALUMNOS_MEDICOS:
-			pantallaDatosMedicos();
-			break;
-		case PAGINA_ALUMNOS_DEPORTIVOS:
-			pantallaDatosDeportivos();
-			break;
-		case PAGINA_SPA_INSCRIPCION:
-			pantallaIncripcionSpa();
-			break;
-		case PAGINA_SPA_CALIFICACIONES:
-			pantallaCalificacionesSpa();
-			break;
-		case PAGINA_AGENDA_ESCOLAR:
-			pantallaAgendaEscolar();
-			break;
-		case PAGINA_CALENDARIO_ETS:
-		case PAGINA_CALENDARIO_ETS2:
-			pantallaCalendarioEts();
-			break;
+	var opcionNavegacion;
+
+	if ( location.pathname.indexOf( '/PDF/' ) != 0 ){
+
+		switch ( location.pathname ){
+			case PAGINA_INICIO:
+			case PAGINA_PRINCIPAL1:
+			case PAGINA_PRINCIPAL2:
+				detectaIdentificacion();
+				break;
+			case PAGINA_OCUPABILIDAD:
+				pantallaOcupabilidad();
+				break;
+			case PAGINA_KARDEX:
+				pantallaKardex();
+				break;
+			case PAGINA_EQUIVALENCIAS:
+				pantallaEquivalencias();
+				break;
+			case PAGINA_CALENDARIO_PARCIALES:
+				pantallaParcialesCalendario();
+				break;
+			case PAGINA_INSCRIPCION_ACTUAL_HORARIO:
+				pantallaInscripcionActualHorario();
+				break;
+			case PAGINA_ALUMNOS_MEDICOS:
+				pantallaDatosMedicos();
+				break;
+			case PAGINA_ALUMNOS_DEPORTIVOS:
+				pantallaDatosDeportivos();
+				break;
+			case PAGINA_SPA_INSCRIPCION:
+				pantallaIncripcionSpa();
+				break;
+			case PAGINA_SPA_CALIFICACIONES:
+				pantallaCalificacionesSpa();
+				break;
+			case PAGINA_AGENDA_ESCOLAR:
+				pantallaAgendaEscolar();
+				break;
+			case PAGINA_CALENDARIO_ETS:
+			case PAGINA_CALENDARIO_ETS2:
+				pantallaCalendarioEts();
+				break;
+			case PAGINA_ALUMNOS_CALIFICACIONES:
+				pantallaCalificaciones();
+				break;
+			case PAGINA_INICIO_ACCESO:
+				// pantallaAlumnosInicio();
+				break;
+			case PAGINA_MAPA_CURRICULAR:
+				// informacionPlanes();
+				break;
+			case PAGINA_FICHA_REINSCRIPCION:
+				pantallaFichaReinscripcion();
+				break;
+			case PAGINA_COMPROBANTE_HORARIO:
+				horarioDirecto();
+				break;
+			case PAGINA_REINSCRIBIR:
+				pantallaReinscribir();
+				break;
+			case PAGINA_REPORTE_REINSCRIPCION:
+				pantallaReporteHorario();
+				break;
+			case PAGINA_TUTORES_COMENTARIOS:
+				pantallaTutoresComentarios();
+				break;
+		}
+		opcionNavegacion = OPCION_RECARGAR;
+
+	} else {
+		opcionNavegacion = OPCION_REGRESAR;
+	}
+
+	var opcionNavegacionVigente = getOpcionNavegacionVigente();
+	if ( opcionNavegacion != opcionNavegacionVigente ){
+		androidJs.setOpcionNavegacion( opcionNavegacion );
 	}
 
 }
 	/*
-	case '/alumnos/default.aspx':
-			pantalla_alumnos_inicio();
-			break;
 		case '/Alumnos/Evaluacion_docente/califica_profe.aspx':
 		case '/Alumnos/Evaluacion_Docente/Califica_Profe.aspx':
 			pantalla_califica_profesor();
@@ -351,34 +391,25 @@ function detectaPantalla (){
 		case '/Alumnos/Evaluacion_Docente/evaluacion_profesor.aspx':
 			pantalla_evalua_profesor();
 			break;
-		case '/Academica/mapa_curricular.aspx':
-			// informacionPlanes();
-			break;
 		case '/Academica/horarios.aspx':
 			pantalla_horarios();
-			break;
-		case '/Alumnos/Reinscripciones/Comprobante_Horario.aspx':
-			horarioDirecto();
-			break;
-		case '/Alumnos/Reinscripciones/reinscribir.aspx':
-			pantalla_reinscribir();
 			break;
 		case '/Alumnos/tutores/Evaluacion_Tutores.aspx':
 			pantalla_evaluacion_tutores();
 			break;
-		case '/Alumnos/Reinscripciones/fichas_reinscripcion.aspx':
-			pantalla_ficha_reinscripcion();
-			break;
-		case '/Alumnos/Informacion_semestral/calificaciones_sem.aspx':
-			pantalla_calificaciones();
-			break;
-		case '/Alumnos/Reinscripciones/Reporte_Horario.aspx':
-			pantalla_reporte_horario();
-			break;
-		case '/Alumnos/tutores/comentarios.aspx':
-			pantalla_tutores_comentarios();
-			break;
 	*/
+
+function getOpcionNavegacionVigente (){
+	try {
+		if ( androidJs ){
+
+			return androidJs.getOpcionNavegacion();
+		}
+	} catch ( error ){
+	}
+
+	return OPCION_RECARGAR;
+}
 
 function detectaIdentificacion (){
 	var usuario = getElemento( SELECTOR_USUARIO_IDENTIFICACION );
@@ -578,9 +609,10 @@ function agregaBuscador ( tipoBuscador ){
 
 function getNuevosControlesBuscador (){
 	var controlesBuscador = document.createElement( 'div' );
-	controlesBuscador.innerHTML = 	'<input type="search" placeholder="' + MENSAJE_CONTROL_BUSCAR + '" id="' + ID_CONTROL_BUSCAR + '"/>'+
-									'<input type="button" id="' + ID_CONTROL_VER_TODO + '" value="' + MENSAJE_CONTROL_VER_TODO + '">'+
-									'&nbsp;<span id="' + ID_CONTROL_CONTADOR + '"></span>&nbsp;';
+	controlesBuscador
+		.innerHTML = 	'<input type="search" placeholder="' + MENSAJE_CONTROL_BUSCAR + '" id="' + ID_CONTROL_BUSCAR + '"/>'+
+						'<input type="button" id="' + ID_CONTROL_VER_TODO + '" value="' + MENSAJE_CONTROL_VER_TODO + '">'+
+						'&nbsp;<span id="' + ID_CONTROL_CONTADOR + '"></span>&nbsp;';
 
 	return controlesBuscador;
 }
@@ -751,16 +783,18 @@ function insertarBotonActualizarOcupabilidad ( controlesBuscador ){
 
 function actualizaOcupabilidad2 (){
 	// location.reload();
-	document.getElementById( 'ctl00_mainCopy_dpdplan' ).onchange();
+	document.getElementById( ID_CONTROL_PLAN_ESTUDIOS ).onchange();
 	// androidJs.recargaPagina();
 }
 
 function insertarControlExportarImportar ( controlesBuscador ){
-	controlesBuscador.innerHTML += 	"<input type='button' id='" + ID_CONTROL_EXPIMP + "' value='" + CONTROL_IMPORTAR + "' title='" + MENSAJE_IMPORTAR + "'/>"+
-											"<div id='" + ID_CONTENEDOR_EXPORTAR + "'>"+
-												"<input id='" + ID_CONTROL_IMPORTACION + "' type = 'file'/>"+
-												"<span class='importar'>" + MENSAJE_IMPORTAR_AREA +"</span>"+
-											"</div>";
+	controlesBuscador
+		.innerHTML += 	
+			"<input type='button' id='" + ID_CONTROL_EXPIMP + "' value='" + CONTROL_IMPORTAR + "' title='" + MENSAJE_IMPORTAR + "'/>"+
+			"<div id='" + ID_CONTENEDOR_EXPORTAR + "'>"+
+				"<input id='" + ID_CONTROL_IMPORTACION + "' type = 'file'/>"+
+				"<span class='importar'>" + MENSAJE_IMPORTAR_AREA +"</span>"+
+			"</div>";
 }
 
 function inicializaControlesHorarios (){
@@ -1067,7 +1101,7 @@ function pantallaKardex (){
 }
 
 function ajustaDisenioKardex (){
-	document.getElementById( ID_CONTENEDOR_KARDEX ).removeAttribute( 'style' );
+	document.getElementById( ID_CONTENEDOR_PANEL1 ).removeAttribute( 'style' );
 
 	var contenedorCentral = document.getElementById( ID_CONTENEDOR_CENTRAL );
 	if ( contenedorCentral.children.length < 3 ){
@@ -1141,10 +1175,7 @@ function log ( mensaje ){
 
 function pantallaEquivalencias (){
 	document.getElementById( ID_CONTENEDOR_EQUIVALENCIAS ).addEventListener( 'DOMSubtreeModified', ajustaEquivalencias, true );
-
-	getElementos( SELECTOR_PRESENTACION_DATOS ).forEach( function ( elemento ){
-		elemento.removeAttribute( 'style' );
-	});
+	ajustaPresentacionDatos();
 }
 
 function ajustaEquivalencias (){
@@ -1155,6 +1186,12 @@ function ajustaEquivalencias (){
 	getElementos( SELECTOR_PRESENTACION_DATOS ).forEach( function ( elemento ){
 		elemento.removeAttribute( 'style' );
 		elemento.parentNode.removeAttribute( 'style' );
+	});
+}
+
+function ajustaPresentacionDatos (){
+	getElementos( SELECTOR_PRESENTACION_DATOS ).forEach( function ( elemento ){
+		elemento.removeAttribute( 'style' );
 	});
 }
 
@@ -1209,7 +1246,7 @@ function validaRegistroColumnaSabado ( registro ){
 		valorColumnaSabado = valorColumnaSabado.trim();
 	}
 
-	return valorColumnaSabado.length > 0 && valorColumnaSabado != '&nbsp;'
+	return valorColumnaSabado.length > 0 && valorColumnaSabado != ESPACIO_HTML
 }
 
 function eliminaColumnaDiaSabado ( tabla ){
@@ -1353,7 +1390,7 @@ function getNombreProfesor ( registro ){
 
 function validaNombreProfesor ( nombreProfesor ){
 	return nombreProfesor.length > 0 && 
-						nombreProfesor != '&nbsp;'
+						nombreProfesor != ESPACIO_HTML
 }
 
 function agregaEnlaceComentarioRapido ( registro, posicionNuevaColumna ){
@@ -1386,14 +1423,12 @@ function pantallaDatosMedicos (){
 }
 
 function pantallaDatosDeportivos (){
-	getElementos( SELECTOR_CONTROL_DEPARTAMENTO + ', ' + SELECTOR_CONTROL_COMPROBANTE )
+	getElementos( SELECTOR_CONTROL_DEPORTE + ', ' + SELECTOR_CONTROL_COMPETENCIA )
 		.forEach( function ( elemento ){
 			elemento.style.width = '';
 		});
 
-	getElementos( SELECTOR_PRESENTACION_DATOS ).forEach( function ( elemento ){
-		elemento.removeAttribute( 'style' );
-	});
+	ajustaPresentacionDatos();
 }
 
 function pantallaIncripcionSpa (){
@@ -1420,8 +1455,17 @@ function ajustaTamanioAgenda (){
 	});
 
 	getElementos( SELECTOR_TABLA_AGENDA ).forEach( function ( elemento ){
-		elemento.setAttribute( 'style', 'color : #000; background-color : #FFF; border-color : #DEDFDE; border-width : 1px; border-style : solid; border-collapse : collapse; ' );
+		elemento.setAttribute( 'style', getEstiloTablaAgenda() );
 	});
+}
+
+function getEstiloTablaAgenda (){
+	return 	'color : #000;'+
+			'background-color : #FFF;'+
+			'border-color : #DEDFDE;'+
+			'border-width : 1px;'+
+			'border-style : solid;'+
+			'border-collapse : collapse; ';
 }
 
 function pantallaCalendarioEts (){
@@ -1435,11 +1479,244 @@ function ajustaControlesCalendarioEts (){
 
 	getElementos( SELECTOR_ETIQUETAS_CONTROLES_ETS ).forEach( function ( elemento ){
 		elemento.readOnly = true;
-		elemento.setAttribute(
-			  'style'
-			, 'background-color: rgba(0,0,0,0); border: none; -moz-user-select: -moz-none; -khtml-user-select: none; -webkit-user-select: none; -ms-user-select: none; user-select: none; '
-		);
+		elemento.setAttribute( 'style', getEstiloCalendarioETS() );
 	});
+}
+
+function getEstiloCalendarioETS (){
+	return 	'background-color: rgba(0,0,0,0);'+
+			'border: none;'+
+			'-moz-user-select: -moz-none;'+
+			'-khtml-user-select: none;'+
+			'-webkit-user-select: none;'+
+			'-ms-user-select: none;'+
+			'user-select: none; ';
+}
+
+function pantallaCalificaciones (){
+	agregaTamanioMinimoContenido();
+}
+
+function pantallaAlumnosInicio (){
+	var boleta = document.getElementById( ID_CONTENEDOR_BOLETA );
+	// document.cookie = 'boleta='+boleta.innerText+';path=/';
+}
+
+function informacionPlanes (){
+
+	var materia;
+	var informacion = { materias : [] };
+	var registros = document.getElementById( ID_CONTROL_MAPA_CURRICULAR );
+
+	if ( registros != null ){
+
+		for ( var i = POSICION_INICIO_REGISTROS; i < registros.rows.length; i++ ){
+			materia = registros.rows[ i ].cells[ COLUMNA_NOMBRE_ASIGNATURA ].innerHTML;
+			informacion.materias.push( materia );
+		}
+
+	}
+	// log("informacionPlanes******\n"+JSON.stringify(informacion));
+}
+
+function pantallaFichaReinscripcion (){
+	document.querySelector( SELECTOR_CONTENEDOR_FICHA_REINSCRIPCION ).removeAttribute( 'style' );
+	agregaTamanioMinimoContenido();
+}
+
+function horarioDirecto (){
+	enviaPeticionCreacionHorario();
+	agregaTamanioMinimoContenido();
+	agregaEnlaceHorarioDirecto();
+	ajustaPresentacionDatos();
+}
+
+var peticion_http = null;
+function enviaPeticionCreacionHorario (){
+	peticion_http = inicializaXHR();
+
+	peticion_http.onreadystatechange = procesaRespuestaCreacionHorario;
+	peticion_http.open( 'GET', getPaginaGeneradoraComprobanteHorario(), true );
+	peticion_http.send( '' );
+}
+
+function procesaRespuestaCreacionHorario (){
+	if ( validaRespuestaPeticion( peticion_http ) ){
+		log( 'Horario - generado' );
+	}
+}
+
+function validaRespuestaPeticion ( peticion ){
+	return peticion.readyState == READY_STATE_COMPLETE && 
+					peticion.status == ESTADO_HTTP_OK;
+}
+
+function getPaginaGeneradoraComprobanteHorario (){
+	return location.protocol+'//'+location.host+'/Alumnos/Reinscripciones/Reporte_Horario.aspx';
+}
+
+function inicializaXHR (){
+	return new XMLHttpRequest();
+}
+
+function agregaEnlaceHorarioDirecto (){
+	getElementos( SELECTOR_CONTROL_COMPROBANTE ).forEach( function ( elemento ){
+		var boton = getCopiaBoton( elemento );
+		var boleta = getBoletaAlumno();
+		var enlace = creaEnlaceComprobanteDirecto( boton, boleta );
+
+		elemento.parentNode.replaceChild( enlace, elemento );
+	});
+}
+
+function getCopiaBoton ( botonOriginal ){
+	var boton = botonOriginal.cloneNode( true );
+	boton.setAttribute( 'type', 'button' );
+
+	return boton;
+}
+
+function getBoletaAlumno (){
+	return document.getElementById( ID_CONTENEDOR_BOLETA ).innerText;
+}
+
+function creaEnlaceComprobanteDirecto ( boton, boleta ){
+	var enlace = document.createElement( 'a' );
+	enlace.setAttribute( 'href', getEnlaceComprobanteDirecto( boleta ) );
+	// enlace.setAttribute( 'target','_blank' );
+	enlace.appendChild( boton );
+
+	return enlace;
+}
+
+function getEnlaceComprobanteDirecto ( boleta ){
+	return 'http://docs.google.com/gview?embedded=true&url='+
+				location.protocol + '//' + location.host + '/PDF/Alumnos/Reinscripciones/' + boleta + '-ComprobanteHorario.pdf';
+}
+
+function pantallaReinscribir (){
+
+	var controlHorariosVigentes      = document.getElementById( ID_CONTROL_HORARIOS_VIGENTES );
+	var controlHorariosSeleccionados = document.getElementById( ID_CONTROL_HORARIOS_SELECCIONADOS );
+
+	if ( controlHorariosVigentes != null && controlHorariosSeleccionados != null ){
+
+		agregaControlContadorInscripcion();
+
+		agregaComportamientoControlHorariosVigentes( controlHorariosVigentes );
+		agregaComportamientoControlHorariosSeleccionados( controlHorariosSeleccionados );
+
+		expandirHorarios2();
+		expandirHorarios1();
+		// cuentaMateriasInscripcion();
+		ajustaPantallaReinscribir();
+
+	} else {
+		agregaTamanioMinimoContenido();
+	}
+}
+
+function agregaControlContadorInscripcion (){
+	var contadorInscripcion = creaControlContadorInscripcion();
+	document.getElementById( ID_TABLA_HORARIO_ACTUAL ).agregaElementoAlFinal( contadorInscripcion );
+}
+
+function creaControlContadorInscripcion (){
+	var contadorInscripcion = document.createElement( 'div' );
+
+	contadorInscripcion.setAttribute( 'id', ID_CONTADOR_ASIGNATURAS_INSCRIPCION );
+	contadorInscripcion.style.float = 'right';
+	contadorInscripcion.innerHTML = '<br/>0';
+
+	return contadorInscripcion;
+}
+
+function agregaComportamientoControlHorariosVigentes ( controlHorariosVigentes ){
+	controlHorariosVigentes.addEventListener( 'DOMSubtreeModified', tiempoHorarios2, true );
+}
+
+function agregaComportamientoControlHorariosSeleccionados ( controlHorariosSeleccionados ){
+	controlHorariosSeleccionados.addEventListener( 'DOMSubtreeModified', tiempoHorarios1, true );
+}
+
+function tiempoHorarios2 (){
+	setTimeout( 'expandirHorarios2()', TIEMPO_ACTUALIZACION_REINSCRIBIR );
+}
+
+function tiempoHorarios1 (){
+	setTimeout( 'expandirHorarios1()', TIEMPO_ACTUALIZACION_REINSCRIBIR );
+}
+
+function expandirHorarios2 (){
+	ajustaReinscripcionPanel1();
+	ajustaHorarioActual();
+	cuentaMateriasInscripcion();
+}
+
+function ajustaReinscripcionPanel1 (){
+	var horarioNuevo = document.getElementById( ID_CONTENEDOR_PANEL1 );
+
+	horarioNuevo.style.height 	= '';
+	horarioNuevo.style.width 	= '';
+	horarioNuevo.style.overflow = '';
+}
+
+function ajustaReinscripcionPanel2 (){
+	var horariosDisponibles = document.getElementById( ID_CONTENEDOR_PANEL2 );
+
+	horariosDisponibles.style.height 	= '';
+	horariosDisponibles.style.width 	= '900px';
+	horariosDisponibles.style.overflow 	= '';
+}
+
+function ajustaHorarioActual (){
+	document.getElementById( ID_TABLA_HORARIO_ACTUAL ).style.width = '900px';
+}
+
+function cuentaMateriasInscripcion (){
+
+	var materiasPorInscribir = document.getElementById( ID_TABLA_HORARIO_ACTUAL );
+	var numeroMaterias = materiasPorInscribir.rows.length - 1;
+	if ( numeroMaterias == 1 && 
+			materiasPorInscribir.rows[ 1 ].cells[ COLUMNA_AJUSTAR_NOMBRE_1 ].innerHTML == ESPACIO_HTML ){
+
+		numeroMaterias = 0;
+	}
+
+	var contadorInscripcion = document.getElementById( ID_CONTADOR_ASIGNATURAS_INSCRIPCION );
+	actualizaContadorInscripcion( contadorInscripcion, numeroMaterias );
+}
+
+function actualizaContadorInscripcion ( contadorInscripcion, numeroMaterias ){
+	contadorInscripcion.innerHTML = '<br/>' + numeroMaterias;
+}
+
+function expandirHorarios1 (){
+	ajustaReinscripcionPanel2();
+	ajustaHorarioPanel2();
+}
+
+function ajustaHorarioPanel2 (){
+	document.getElementById( ID_TABLA_HORARIO_ACTUAL2 ).style.width = '900px';
+}
+
+function ajustaPantallaReinscribir (){
+	document.getElementById( ID_CONTENEDOR_PAGINA ).style.width    = '1300px';
+	document.getElementById( ID_CONTENEDOR_CENTRAL ).style.width   = '1000px';
+	document.getElementById( ID_CONTENIDO_CENTRAL ).style.width    = '1000px';
+	document.getElementById( ID_SUBCONTENIDO_CENTRAL ).style.width = '1000px';
+
+	var elemento = document.getElementById( ID_CONTENEDOR_ELEMENTO );
+	elemento.style.width  = '';
+	elemento.style.height = '';
+}
+
+function pantallaReporteHorario (){
+	agregaTamanioMinimoContenido();
+}
+
+function pantallaTutoresComentarios (){
+	agregaTamanioMinimoContenido();
 }
 
 var IDENTIFICACION_USUARIO  = 'usuario';
@@ -1476,15 +1753,18 @@ var SELECTOR_ETIQUETA_PLAN    = '#ctl00_mainCopy_txtplan';
 
 var SELECTOR_GRUPO_CALIFICACIONES = '#ctl00_mainCopy_Lbl_Kardex table';
 
-var SELECTOR_PRESENTACION_DATOS   = '#ctl00_mainCopy_PnlDatos';
-var SELECTOR_TABLA_EQUIVALENCIAS  = '#ctl00_mainCopy_GV_EquivalenciasA';
-var SELECTOR_CONTROL_DEPARTAMENTO = '#ctl00_mainCopy_BtnAgregarDep';
-var SELECTOR_CONTROL_COMPROBANTE  = '#ctl00_mainCopy_BtnAgregarComp';
-var SELECTOR_CONTENEDOR_AGENDA    = '#ctl00_mainCopy_Panel';
-var SELECTOR_TABLA_AGENDA         = '#ctl00_mainCopy_Panel table';
+var SELECTOR_PRESENTACION_DATOS  = '#ctl00_mainCopy_PnlDatos';
+var SELECTOR_TABLA_EQUIVALENCIAS = '#ctl00_mainCopy_GV_EquivalenciasA';
+var SELECTOR_CONTROL_DEPORTE     = '#ctl00_mainCopy_BtnAgregarDep';
+var SELECTOR_CONTROL_COMPETENCIA = '#ctl00_mainCopy_BtnAgregarComp';
+var SELECTOR_CONTENEDOR_AGENDA   = '#ctl00_mainCopy_Panel';
+var SELECTOR_TABLA_AGENDA        = '#ctl00_mainCopy_Panel table';
+var SELECTOR_CONTROL_COMPROBANTE = '#ctl00_mainCopy_BtnComprobante';
 
 var SELECTOR_CONTENEDOR_CONTROLES_ETS = 'div#copy br+table';
 var SELECTOR_ETIQUETAS_CONTROLES_ETS  = 'div#copy table table tr td:first-child input';
+
+var SELECTOR_CONTENEDOR_FICHA_REINSCRIPCION = '#copy .container';
 
 var DENTRO_DE  = 0;
 var ANTES_DE   = 1;
@@ -1501,10 +1781,12 @@ var PAGINA_PROFESORES_PRINCIPAL       = '/Alumnos/Evaluacion_Docente/Default.asp
 var PAGINA_ALUMNOS_GENERAL            = '/Alumnos/info_alumnos/Datos_Alumno.aspx';
 var PAGINA_ALUMNOS_MEDICOS            = '/Alumnos/info_alumnos/DatosAlumnosMedicos.aspx';
 var PAGINA_ALUMNOS_DEPORTIVOS         = '/Alumnos/info_alumnos/DatosAlumnosDeportivos.aspx';
+var PAGINA_ALUMNOS_CALIFICACIONES     = '/Alumnos/Informacion_semestral/calificaciones_sem.aspx';
 var PAGINA_OCUPABILIDAD               = '/Academica/Ocupabilidad_grupos.aspx';
 var PAGINA_INICIO                     = '/';
 var PAGINA_PRINCIPAL1                 = '/default.aspx';
 var PAGINA_PRINCIPAL2                 = '/Default.aspx';
+var PAGINA_INICIO_ACCESO              = '/alumnos/default.aspx';
 var PAGINA_KARDEX                     = '/Alumnos/boleta/kardex.aspx';
 var PAGINA_EQUIVALENCIAS              = '/Academica/Equivalencias.aspx';
 var PAGINA_CALENDARIO_PARCIALES       = '/Academica/Calendario.aspx';
@@ -1512,6 +1794,12 @@ var PAGINA_CALENDARIO_ETS             = '/Academica/Calendario_ets.aspx';
 var PAGINA_CALENDARIO_ETS2            = '/Academica/calendario_ets.aspx';
 var PAGINA_INSCRIPCION_ACTUAL_HORARIO = '/Alumnos/Informacion_semestral/Horario_Alumno.aspx';
 var PAGINA_AGENDA_ESCOLAR             = '/Academica/agenda_escolar.aspx';
+var PAGINA_MAPA_CURRICULAR            = '/Academica/mapa_curricular.aspx';
+var PAGINA_FICHA_REINSCRIPCION        = '/Alumnos/Reinscripciones/fichas_reinscripcion.aspx';
+var PAGINA_COMPROBANTE_HORARIO        = '/Alumnos/Reinscripciones/Comprobante_Horario.aspx';
+var PAGINA_REINSCRIBIR                = '/Alumnos/Reinscripciones/reinscribir.aspx';
+var PAGINA_REPORTE_REINSCRIPCION      = '/Alumnos/Reinscripciones/Reporte_Horario.aspx';
+var PAGINA_TUTORES_COMENTARIOS        = '/Alumnos/tutores/comentarios.aspx';
 
 var COLUMNA_LUGARES_DISPONIBLES = 6;
 var COLUMNA_GRUPO               = 0;
@@ -1519,6 +1807,9 @@ var COLUMNA_MATERIA             = 2;
 var COLUMNA_DIA_SABADO          = 10;
 var COLUMNA_PROFESOR            = 2;
 var COLUMNA_MATERIA2            = 1;
+var COLUMNA_NOMBRE_ASIGNATURA   = 2;
+
+var COLUMNA_AJUSTAR_NOMBRE_1 = 1;
 
 var MENSAJE_CONTROL_BUSCAR   = 'Buscar...';
 var CONTROL_IMPORTAR = 'Importar';
@@ -1551,13 +1842,18 @@ var ID_CONTROL_COMENTARIO_RAPIDO = 'formularioEnlace';
 
 var ID_CONTENEDOR_EXPORTAR = 'exportar';
 
+var ID_CONTROL_MAPA_CURRICULAR  = 'ctl00_mainCopy_GridView1';
 var ID_CONTENEDOR_HORARIOS      = 'ctl00_mainCopy_dbgHorarios';
 var ID_CONTENEDOR_OCUPABILIDAD  = 'ctl00_mainCopy_GrvOcupabilidad';
-var ID_CONTENEDOR_KARDEX        = 'ctl00_mainCopy_Panel1';
+var ID_CONTENEDOR_PANEL1        = 'ctl00_mainCopy_Panel1';
+var ID_CONTENEDOR_PANEL2        = 'ctl00_mainCopy_Panel2';
 var ID_CONTENEDOR_EQUIVALENCIAS = 'ctl00_mainCopy_UP';
 var ID_CONTROL_PARCIAL          = 'ctl00_mainCopy_dpdnombrecaptura';
 var ID_CONTENIDO_INFORMACION    = 'ctl00_mainCopy_PnlDatos';
 var ID_TABLA_HORARIO_ACTUAL     = 'ctl00_mainCopy_GV_Horario';
+var ID_TABLA_HORARIO_ACTUAL2    = 'ctl00_mainCopy_GV_Horario2';
+var ID_CONTROL_PLAN_ESTUDIOS    = 'ctl00_mainCopy_dpdplan';
+var ID_CONTENEDOR_ELEMENTO      = 'ctl00_mainCopy_div';
 
 var ID_CONTENEDOR_CENTRAL   = 'contentwrapper';
 var ID_ACCESOS_RAPIDOS      = 'rightcolumn';
@@ -1568,8 +1864,16 @@ var ID_SUBCONTENIDO_CENTRAL = 'centercolumn';
 var ID_CONTENEDOR_PAGINA    = 'wrapper';
 
 var ID_CONTENEDOR_REGISTROS = 'regs';
+
 var ID_COMENTARIO_PROFESOR = 'comentarioProfesor';
-var ID_COMENTARIO_MATERIA = 'comentarioMateria';
+var ID_COMENTARIO_MATERIA  = 'comentarioMateria';
+
+var ID_CONTENEDOR_BOLETA = 'ctl00_leftColumn_LoginNameSession';
+
+var ID_CONTROL_HORARIOS_VIGENTES      = 'ctl00_mainCopy_UpdatePanel2';
+var ID_CONTROL_HORARIOS_SELECCIONADOS = 'ctl00_mainCopy_UpdatePanel1';
+
+var ID_CONTADOR_ASIGNATURAS_INSCRIPCION = 'contadorInscripcion';
 
 var CODIGO_TECLA_DELETE   = 8;
 var CODIGO_TECLA_SUPRIMIR = 46;
@@ -1580,20 +1884,37 @@ var POSICION_TITULOS               = 0;
 var POSICION_INICIO_REGISTROS      = 1;
 var POSICION_INICIO_NOMBRE_PLANTEL = 9;
 
+var TIEMPO_ACTUALIZACION_REINSCRIBIR = 500;
+
+var ESPACIO_HTML = '&nbsp;';
+
 var NOMBRE_ELEMENTOS_COMENTARIO_RAPIDO = 'diccionario';
+
+var READY_STATE_COMPLETE = 4;
+var ESTADO_HTTP_OK = 200;
+
+var OPCION_RECARGAR = 0;
+var OPCION_REGRESAR = 1;
 
 function iniciar (){
 	try {
-		androidJs.guardaContenido( 'perro!!' );
 
-		cambiaTitulo();
 		ajustarDisenio();
 		detectaPantalla();
 
 	} catch ( error ){
-		console.log( '@' + error );
-		androidJs.guardaContenido( '@' + error );
-		androidJs.getContenido();
+		log( '@' + error );
+	}
+}
+
+function log ( mensaje ){
+	try {
+		if ( androidJs ){
+			androidJs.guardaContenido( mensaje );
+			androidJs.getContenido();
+		}
+	} catch ( error ){
+		console.log( mensaje );
 	}
 }
 

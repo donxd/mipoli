@@ -5,8 +5,10 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,6 +18,7 @@ import android.webkit.CookieSyncManager;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -45,6 +48,10 @@ public class PrimeraSeccion extends Fragment {
 	private final String rutaScript = "js/core.js";
 	private JavaJs javaJs = new JavaJs();
 	//private boolean inyeccionRealizada = false;
+
+	private FloatingActionButton botonFlotante;
+	private int opcionNavegacion = 0;
+	private static final int ENCONTRADO = -1;
 
 	@Nullable
 	@Override
@@ -87,7 +94,7 @@ public class PrimeraSeccion extends Fragment {
 
 		cargaPreferencias();
 
-		String paginaCargar = getPaginaCargar();
+		final String paginaCargar = getPaginaCargar();
 
 		//WebView.setWebContentsDebuggingEnabled( true );
 
@@ -95,6 +102,7 @@ public class PrimeraSeccion extends Fragment {
 		pagina.getSettings().setDomStorageEnabled( true );
 		pagina.getSettings().setBuiltInZoomControls( true );
 		pagina.getSettings().setJavaScriptEnabled( true );
+		pagina.getSettings().setPluginState( WebSettings.PluginState.ON );
 		pagina.getSettings().setDatabaseEnabled( true );
 		pagina.getSettings().setDatabasePath( context.getDir("database", Context.MODE_PRIVATE).getPath() );
 		pagina.setWebViewClient( new WebViewClient() {
@@ -106,10 +114,15 @@ public class PrimeraSeccion extends Fragment {
 					pagina.setVisibility( View.VISIBLE );
 				}
 
+				if ( url.indexOf( "/PDF/" ) != ENCONTRADO ){
+					setOpcionNavegacion( 1 );
+				} else {
+					setOpcionNavegacion( 0 );
 
-				inyectaJs( webview );
-				javaJs.getContenido();
-				CookieSyncManager.getInstance().sync();
+					inyectaJs( webview );
+					javaJs.getContenido();
+					CookieSyncManager.getInstance().sync();
+				}
 
 				super.onPageFinished( webview, url );
 			}
@@ -130,9 +143,29 @@ public class PrimeraSeccion extends Fragment {
 
 		});
 
+		javaJs.setPrimeraSeccion( (PrimeraSeccion) this );
 		javaJs.setPagina( pagina );
 		pagina.addJavascriptInterface( javaJs, "androidJs" );
 		pagina.loadUrl( paginaCargar );
+
+		botonFlotante = (FloatingActionButton) vista.findViewById( R.id.fab );
+		botonFlotante.setImageDrawable( ContextCompat.getDrawable( getContext(), R.drawable.stat_notify_sync_noanim ) );
+		botonFlotante.setOnClickListener( new View.OnClickListener() {
+			@Override
+			public void onClick( View view ){
+
+				if ( opcionNavegacion == 0 ){
+					pagina.reload();
+				}
+
+				if ( opcionNavegacion == 1 ){
+					pagina.goBack();
+				}
+
+				// Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+					//	.setAction("Action", null).show();
+			}
+		});
 	}
 
 	public void setControlPlanteles ( Spinner controlListaPlanteles ){
@@ -233,6 +266,37 @@ public class PrimeraSeccion extends Fragment {
 		}
 
 		return "";
+	}
+
+	public void setOpcionNavegacion ( int opcion ){
+		if ( opcionNavegacion != opcion ){
+
+			switch ( opcion ){
+				case 0:
+					presentaIconoRecargar();
+					break;
+				case 1:
+					presentaIconoRegresar();
+					break;
+			}
+
+			opcionNavegacion = opcion;
+
+		}
+	}
+
+	public int getOpcionNavegacion (){
+		return opcionNavegacion;
+	}
+
+	private void presentaIconoRecargar (){
+		botonFlotante = (FloatingActionButton) vista.findViewById( R.id.fab );
+		botonFlotante.setImageDrawable( ContextCompat.getDrawable( getContext(), R.drawable.stat_notify_sync_noanim ) );
+	}
+
+	private void presentaIconoRegresar (){
+		botonFlotante = (FloatingActionButton) vista.findViewById( R.id.fab );
+		botonFlotante.setImageDrawable( ContextCompat.getDrawable( getContext(), R.drawable.ic_media_rew ) );
 	}
 
 }
