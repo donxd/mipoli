@@ -2,6 +2,7 @@ package com.example.pruebas.interfaz2;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -12,6 +13,8 @@ import android.support.v4.content.ContextCompat;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieSyncManager;
@@ -37,6 +40,7 @@ public class PrimeraSeccion extends Fragment {
 	private Context context;
 	private Spinner controlListaPlanteles;
 	private SharedPreferences preferencias;
+	private ScaleGestureDetector scaleGestureDetector;
 
 	private Integer contador;
 	private String paginaCarga;
@@ -52,6 +56,9 @@ public class PrimeraSeccion extends Fragment {
 	private FloatingActionButton botonFlotante;
 	private int opcionNavegacion = 0;
 	private static final int ENCONTRADO = -1;
+
+	private float ultimoZoom = 0;
+	private int zoomAnterior = 0;
 
 	@Nullable
 	@Override
@@ -105,6 +112,8 @@ public class PrimeraSeccion extends Fragment {
 		pagina.getSettings().setPluginState( WebSettings.PluginState.ON );
 		pagina.getSettings().setDatabaseEnabled( true );
 		pagina.getSettings().setDatabasePath( context.getDir("database", Context.MODE_PRIVATE).getPath() );
+		pagina.getSettings().setSupportZoom( true );
+		configuraZoom( pagina );
 		pagina.setWebViewClient( new WebViewClient() {
 
 			@Override
@@ -113,6 +122,21 @@ public class PrimeraSeccion extends Fragment {
 				if ( paginaCargada && pagina.getVisibility() == View.GONE ){
 					pagina.setVisibility( View.VISIBLE );
 				}
+
+				if ( Build.VERSION.SDK_INT > 20 ){
+					webview.zoomBy( ultimoZoom );
+					Log.i( marcaLog, "zoom e : " + ultimoZoom );
+				} else {
+					Log.i( marcaLog, "zoom ant : " + zoomAnterior );
+					Log.i( marcaLog, "zoom 3 : " + pagina.getScale() );
+					if ( zoomAnterior != pagina.getScale() ){
+						zoomAnterior = (int) ( pagina.getScale() * 100 );
+						Log.i( marcaLog, "zoom f : " + zoomAnterior );
+						pagina.setInitialScale( zoomAnterior );
+					}
+
+				}
+
 
 				if ( url.indexOf( "/PDF/" ) != ENCONTRADO ){
 					setOpcionNavegacion( 1 );
@@ -125,6 +149,16 @@ public class PrimeraSeccion extends Fragment {
 				}
 
 				super.onPageFinished( webview, url );
+			}
+
+			@Override
+			public void onScaleChanged( WebView vista, float viejaEscala, float nuevaEscala ){
+				Log.i( marcaLog, "zoom escala : " + viejaEscala +" -> "+ nuevaEscala );
+				if ( viejaEscala != nuevaEscala ){
+					viejaEscala = nuevaEscala;
+				}
+
+				super.onScaleChanged( vista, viejaEscala, nuevaEscala );
 			}
 
 			@Override
@@ -146,6 +180,28 @@ public class PrimeraSeccion extends Fragment {
 		javaJs.setPrimeraSeccion( (PrimeraSeccion) this );
 		javaJs.setPagina( pagina );
 		pagina.addJavascriptInterface( javaJs, "androidJs" );
+
+
+		/*scaleGestureDetector = new ScaleGestureDetector( pagina.getContext(), new ScaleGestureDetector.SimpleOnScaleGestureListener(){
+			@Override
+			public boolean onScale ( ScaleGestureDetector detector ){
+				Log.i( marcaLog, "zoom : "+String.valueOf( detector.getScaleFactor() ) );
+				return super.onScale( detector );
+				//return true;
+			}
+		});*/
+
+		/*pagina.setOnTouchListener( new View.OnTouchListener(){
+			/*@Override
+			public boolean onTouch( View view, MotionEvent motionEvent ){
+				scaleGestureDetector.onTouchEvent( motionEvent );
+
+				View.OnTouchListener escucha = new View.OnTouchListener();
+
+				return true;
+			}* /
+		});*/
+
 		pagina.loadUrl( paginaCargar );
 
 		botonFlotante = (FloatingActionButton) vista.findViewById( R.id.fab );
@@ -166,6 +222,11 @@ public class PrimeraSeccion extends Fragment {
 					//	.setAction("Action", null).show();
 			}
 		});
+	}
+
+	private void configuraZoom ( WebView pagina ){
+		pagina.getSettings().setLoadWithOverviewMode( true );
+		pagina.getSettings().setUseWideViewPort( true );
 	}
 
 	public void setControlPlanteles ( Spinner controlListaPlanteles ){
