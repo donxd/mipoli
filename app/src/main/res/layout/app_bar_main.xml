@@ -26,6 +26,12 @@
                 android:id="@+id/lista_herramientas"
                 android:spinnerMode="dialog" />
 
+            <android.support.v7.widget.AppCompatSpinner
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:id="@+id/lista_accesos"
+                android:spinnerMode="dialog" />
+
         </android.support.v7.widget.Toolbar>
 
     </android.support.design.widget.AppBarLayout>

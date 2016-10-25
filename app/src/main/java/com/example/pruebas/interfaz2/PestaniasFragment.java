@@ -2,33 +2,23 @@ package com.example.pruebas.interfaz2;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.net.Uri;
+import android.graphics.Path;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewDebug;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
-import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import static android.R.drawable.ic_menu_revert;
 
 public class PestaniasFragment extends Fragment {
 
@@ -40,9 +30,11 @@ public class PestaniasFragment extends Fragment {
 	private final SegundaSeccion seccion2 = new SegundaSeccion();
 	private final TerceraSeccion seccion3 = new TerceraSeccion();
 	private OpcionesPlantel opcionesPlantel = new OpcionesPlantel();
+	private OpcionesAccesos opcionesAccesos = new OpcionesAccesos();
 
 
 	private Spinner listaPlanteles;
+	private Spinner listaAccesos;
 	private AdaptadorPestanias adaptadorPestanias;
 	private FragmentManager manejador;
 
@@ -107,6 +99,14 @@ public class PestaniasFragment extends Fragment {
 		listaHerramientas.setOnItemSelectedListener( getEventoSeleccionPlantel() );
 	}
 
+	public void configuraBarraAccesos ( Spinner controlAccesos ){
+		listaAccesos = controlAccesos;
+		seccion1.setControlAccesos( listaAccesos );
+		//Spinner controlAccesos = (Spinner) vistaPrincipal.findViewById( R.id.lista_herramientas );
+		controlAccesos.setAdapter( getAdaptadorAccesos() );
+		controlAccesos.setOnItemSelectedListener( getEventoSeleccionAcceso() );
+	}
+
 	private ArrayAdapter<String> getAdaptadorDatos (){
 		List<String> listaPlanteles = opcionesPlantel.getListaOpcionesPlanteles();
 		ArrayAdapter<String> adaptador = new ArrayAdapter<String>( context, R.layout.lista_presentacion, listaPlanteles );
@@ -123,10 +123,18 @@ public class PestaniasFragment extends Fragment {
 		return adaptador;
 	}
 
+	private ArrayAdapter<String> getAdaptadorAccesos (){
+		List<String> listaAccesos = opcionesAccesos.getListaOpcionesAccesos();
+		ArrayAdapter<String> adaptador = new ArrayAdapter<String>( context, R.layout.lista_presentacion, listaAccesos );
+		adaptador.setDropDownViewResource( R.layout.lista_seleccion );
+
+		return adaptador;
+	}
+
 	private AdapterView.OnItemSelectedListener getEventoSeleccionPlantel (){
 		return new AdapterView.OnItemSelectedListener (){
 			@Override
-			public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l){
+			public void onItemSelected( AdapterView<?> adapterView, View view, int i, long l ){
 				guardaPreferenciaPlantel();
 				//verificaContexto();
 				redirigePlantelPreferencia();
@@ -148,6 +156,23 @@ public class PestaniasFragment extends Fragment {
 		seccion1.redirigePlantel();
 	}
 
+	private AdapterView.OnItemSelectedListener getEventoSeleccionAcceso (){
+		return new AdapterView.OnItemSelectedListener (){
+			@Override
+			public void onItemSelected( AdapterView<?> adapterView, View view, int i, long l ){
+				redirigeSaesAcceso();
+			}
+
+			@Override
+			public void onNothingSelected( AdapterView<?> adapterView ){
+			}
+		};
+	}
+
+	private void redirigeSaesAcceso (){
+		seccion1.redirigeAcceso( listaAccesos );
+	}
+
 	private SharedPreferences.Editor getEditorPreferencias () {
 		return preferencias.edit();
 	}
@@ -166,13 +191,16 @@ public class PestaniasFragment extends Fragment {
 					case 0:
 						controlaPrimeraSeccion();
 						muestraPlanteles();
+						muestraAccesos();
 						break;
 					case 1:
 						ocultaPlanteles();
+						ocultaAccesos();
 						seccion2.revisaConexionInternet();
 						break;
 					case 2:
 						ocultaPlanteles();
+						ocultaAccesos();
 						break;
 				}
 			}
@@ -188,8 +216,16 @@ public class PestaniasFragment extends Fragment {
 		listaPlanteles.setVisibility( View.GONE );
 	}
 
+	private void ocultaAccesos (){
+		listaAccesos.setVisibility( View.GONE );
+	}
+
 	private void muestraPlanteles (){
 		listaPlanteles.setVisibility( View.VISIBLE );
+	}
+
+	private void muestraAccesos (){
+		listaAccesos.setVisibility( View.VISIBLE );
 	}
 
 	private void controlaPrimeraSeccion (){

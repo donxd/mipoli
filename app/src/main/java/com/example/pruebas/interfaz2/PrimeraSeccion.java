@@ -39,6 +39,7 @@ public class PrimeraSeccion extends Fragment {
 	private WebView pagina;
 	private Context context;
 	private Spinner controlListaPlanteles;
+	private Spinner controlListaAccesos;
 	private SharedPreferences preferencias;
 	private ScaleGestureDetector scaleGestureDetector;
 
@@ -59,6 +60,8 @@ public class PrimeraSeccion extends Fragment {
 
 	private float ultimoZoom = 0;
 	private int zoomAnterior = 0;
+
+	private String ultimaPagina = "";
 
 	@Nullable
 	@Override
@@ -125,20 +128,20 @@ public class PrimeraSeccion extends Fragment {
 
 				if ( Build.VERSION.SDK_INT > 20 ){
 					webview.zoomBy( ultimoZoom );
-					Log.i( marcaLog, "zoom e : " + ultimoZoom );
+					// Log.i( marcaLog, "zoom e : " + ultimoZoom );
 				} else {
-					Log.i( marcaLog, "zoom ant : " + zoomAnterior );
-					Log.i( marcaLog, "zoom 3 : " + pagina.getScale() );
+					// Log.i( marcaLog, "zoom ant : " + zoomAnterior );
+					// Log.i( marcaLog, "zoom 3 : " + pagina.getScale() );
 					if ( zoomAnterior != pagina.getScale() ){
 						zoomAnterior = (int) ( pagina.getScale() * 100 );
-						Log.i( marcaLog, "zoom f : " + zoomAnterior );
+						// Log.i( marcaLog, "zoom f : " + zoomAnterior );
 						pagina.setInitialScale( zoomAnterior );
 					}
 
 				}
 
 
-				if ( url.indexOf( "/PDF/" ) != ENCONTRADO ){
+				if ( url.contains( "/PDF/" ) ){
 					setOpcionNavegacion( 1 );
 				} else {
 					setOpcionNavegacion( 0 );
@@ -148,12 +151,14 @@ public class PrimeraSeccion extends Fragment {
 					CookieSyncManager.getInstance().sync();
 				}
 
+				detectaSeccionSaes( url );
+
 				super.onPageFinished( webview, url );
 			}
 
 			@Override
 			public void onScaleChanged( WebView vista, float viejaEscala, float nuevaEscala ){
-				Log.i( marcaLog, "zoom escala : " + viejaEscala +" -> "+ nuevaEscala );
+				// Log.i( marcaLog, "zoom escala : " + viejaEscala +" -> "+ nuevaEscala );
 				if ( viejaEscala != nuevaEscala ){
 					viejaEscala = nuevaEscala;
 				}
@@ -165,7 +170,7 @@ public class PrimeraSeccion extends Fragment {
 			public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
 				paginaCargada = false;
 				TextView textView = (TextView) vista.findViewById(R.id.mensaje_pagina);
-				textView.setText("No hay internet");
+				textView.setText( "No hay internet" );
 				textView.setVisibility(View.VISIBLE);
 
 					/*
@@ -233,6 +238,10 @@ public class PrimeraSeccion extends Fragment {
 		this.controlListaPlanteles = controlListaPlanteles;
 	}
 
+	public void setControlAccesos ( Spinner controlListaAccesos ){
+		this.controlListaAccesos = controlListaAccesos;
+	}
+
 	/*
 	public void actualizaLeyenda (){
 		Button textView = (Button) vista.findViewById( R.id.mensaje_s1 );
@@ -255,7 +264,7 @@ public class PrimeraSeccion extends Fragment {
 			plantel = controlListaPlanteles.getSelectedItem().toString();
 		}
 
-		return String.format( "https://www.saes.%s.ipn.mx", plantel );
+		return String.format( "https://www.saes.%s.ipn.mx", plantel.toLowerCase() );
 	}
 
 	private void cargaPreferencias() {
@@ -265,6 +274,26 @@ public class PrimeraSeccion extends Fragment {
 	public void redirigePlantel (){
 		String paginaCargar = getPaginaCargar();
 		pagina.loadUrl( paginaCargar );
+	}
+
+	public void redirigeAcceso ( Spinner listaAccesos ){
+		String paginaCargar = getPaginaAcceso( listaAccesos );
+		if ( !paginaCargar.equals( getPaginaCargar() ) && 
+				!ultimaPagina.equals( paginaCargar )){
+
+			ultimaPagina = paginaCargar;
+			pagina.loadUrl( paginaCargar );
+		}
+	}
+
+	private String getPaginaAcceso ( Spinner listaAccesos ){
+		String acceso = listaAccesos.getSelectedItem().toString();
+
+		return String.format( 
+			"%s%s"
+			, getPaginaCargar()
+			, OpcionesAccesos.getDireccionAcceso( acceso )
+		);
 	}
 
 	private void inyectaJs ( WebView webview ){
@@ -358,6 +387,40 @@ public class PrimeraSeccion extends Fragment {
 	private void presentaIconoRegresar (){
 		botonFlotante = (FloatingActionButton) vista.findViewById( R.id.fab );
 		botonFlotante.setImageDrawable( ContextCompat.getDrawable( getContext(), R.drawable.ic_media_rew ) );
+	}
+
+	public void detectaSeccionSaes ( String url ){
+		// String direccionSaes = pagina.getUrl();
+		String direccionSaes = url;
+		String paginaCargada = getPaginaCargar();
+
+		String seccionSaes = getRutaPagina( direccionSaes, paginaCargada );
+		marcarSeccionSaes( seccionSaes );
+		// if ( OpcionesAccesos.tieneSeccion( seccionSaes ) ){
+		// 	marcarSeccionSaes( seccionSaes );
+		// }
+	}
+
+	private String getRutaPagina ( String url, String dominio ){
+
+		// Log.i( marcaLog, String.format( " url : [%s] - dominio : [%s]", url, dominio ) );
+
+		if ( url.contains( dominio ) ){
+
+			return url.substring( dominio.length() );
+		}
+
+		return "";
+	}
+
+	private void marcarSeccionSaes ( String seccion ){
+		Log.i( marcaLog, String.format( " seccion : [%s]", seccion ) );
+		int posicionAcceso = OpcionesAccesos.getAcceso( seccion );
+		Log.i( marcaLog, String.format( " posicion : [%d]", posicionAcceso ) );
+
+		controlListaAccesos.setActivated( false );
+		controlListaAccesos.setSelection( posicionAcceso );
+		controlListaAccesos.setActivated( true );
 	}
 
 }

@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
 	private FragmentTransaction fragmentTransaction;
 
 	private Spinner controlPlanteles;
+	private Spinner controlAccesos;
 	private SharedPreferences preferencias;
 	private OpcionesPlantel opcionesPlantel;
 
@@ -43,11 +44,13 @@ public class MainActivity extends AppCompatActivity {
 		NavigationView navigationView = (NavigationView) findViewById( R.id.nav_view );
 
 		controlPlanteles = (Spinner) findViewById( R.id.lista_herramientas );
+		controlAccesos   = (Spinner) findViewById( R.id.lista_accesos );
 		// inicializaControlPlanteles();
 
 		fragmentManager = getSupportFragmentManager();
 		pestaniasFragment.setContext( this );
 		pestaniasFragment.configuraBarraHerramientas( controlPlanteles );
+		pestaniasFragment.configuraBarraAccesos( controlAccesos );
 		pestaniasFragment.aplicaPreferencias();
 		pestaniasFragment.setManejador( fragmentManager );
 
