@@ -193,4 +193,24 @@ public class MainActivity extends AppCompatActivity {
 		return true;
 	}*/
 
+	public void ocultaAccesos (){
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				//controlAccesos.setVisibility( View.GONE );
+				controlAccesos.setEnabled( false );
+			}
+		});
+	}
+
+	public void muestraAccesos (){
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				//controlAccesos.setVisibility( View.VISIBLE );
+				controlAccesos.setEnabled( true );
+			}
+		});
+	}
+
 }

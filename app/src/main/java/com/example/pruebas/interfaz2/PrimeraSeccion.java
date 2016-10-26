@@ -62,6 +62,7 @@ public class PrimeraSeccion extends Fragment {
 	private int zoomAnterior = 0;
 
 	private String ultimaPagina = "";
+	private PestaniasFragment pestanias;
 
 	@Nullable
 	@Override
@@ -126,7 +127,7 @@ public class PrimeraSeccion extends Fragment {
 					pagina.setVisibility( View.VISIBLE );
 				}
 
-				if ( Build.VERSION.SDK_INT > 20 ){
+				if ( android.os.Build.VERSION.SDK_INT > 20 && ultimoZoom > 0.01 ){
 					webview.zoomBy( ultimoZoom );
 					// Log.i( marcaLog, "zoom e : " + ultimoZoom );
 				} else {
@@ -152,6 +153,7 @@ public class PrimeraSeccion extends Fragment {
 				}
 
 				detectaSeccionSaes( url );
+				guardarNavegacion( url );
 
 				super.onPageFinished( webview, url );
 			}
@@ -282,6 +284,7 @@ public class PrimeraSeccion extends Fragment {
 				!ultimaPagina.equals( paginaCargar )){
 
 			ultimaPagina = paginaCargar;
+			Log.i( marcaLog, " url-pagina : guardada " );
 			pagina.loadUrl( paginaCargar );
 		}
 	}
@@ -399,6 +402,17 @@ public class PrimeraSeccion extends Fragment {
 		// if ( OpcionesAccesos.tieneSeccion( seccionSaes ) ){
 		// 	marcarSeccionSaes( seccionSaes );
 		// }
+		guardarNavegacion( direccionSaes );
+	}
+
+	private void guardarNavegacion ( String paginaCargada ){
+		if ( !paginaCargada.equals( getPaginaCargar() ) && 
+				!ultimaPagina.equals( paginaCargada ) ){
+
+			ultimaPagina = paginaCargada;
+			Log.i( marcaLog, " url-pagina : guardada " );
+			//pagina.loadUrl( paginaCargada );
+		}
 	}
 
 	private String getRutaPagina ( String url, String dominio ){
@@ -421,6 +435,11 @@ public class PrimeraSeccion extends Fragment {
 		controlListaAccesos.setActivated( false );
 		controlListaAccesos.setSelection( posicionAcceso );
 		controlListaAccesos.setActivated( true );
+	}
+
+	public void setPestanias ( PestaniasFragment pestanias ){
+		this.pestanias = pestanias;
+		javaJs.setPestanias( pestanias );
 	}
 
 }

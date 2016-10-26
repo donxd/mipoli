@@ -66,6 +66,8 @@ public class PestaniasFragment extends Fragment {
 			}
 		});
 
+		seccion1.setPestanias( this );
+
 		return x;
 	}
 
@@ -216,7 +218,7 @@ public class PestaniasFragment extends Fragment {
 		listaPlanteles.setVisibility( View.GONE );
 	}
 
-	private void ocultaAccesos (){
+	public void ocultaAccesos (){
 		listaAccesos.setVisibility( View.GONE );
 	}
 
@@ -224,7 +226,7 @@ public class PestaniasFragment extends Fragment {
 		listaPlanteles.setVisibility( View.VISIBLE );
 	}
 
-	private void muestraAccesos (){
+	public void muestraAccesos (){
 		listaAccesos.setVisibility( View.VISIBLE );
 	}
 

@@ -1,8 +1,10 @@
 package com.example.pruebas.interfaz2;
 
 import android.util.Log;
+import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
+import android.widget.Spinner;
 
 /**
  * Created by pruebas on 8/09/16.
@@ -15,6 +17,7 @@ public class JavaJs {
 
 	private WebView pagina = null;
 	private PrimeraSeccion primeraSeccion = null;
+	private PestaniasFragment pestanias = null;
 
 	@JavascriptInterface
 	public void guardaContenido ( String contenido ){
@@ -73,5 +76,24 @@ public class JavaJs {
 	public void setOpcionNavegacion ( int opcion ){
 		primeraSeccion.setOpcionNavegacion( opcion );
 	}
+
+	@JavascriptInterface
+	public void ocultaAccesosRapidos (){
+		if ( pestanias != null ){
+			( ( MainActivity ) pestanias.getActivity() ).ocultaAccesos();
+		}
+	}
+
+	@JavascriptInterface
+	public void muestraAccesosRapidos (){
+		if ( pestanias != null ){
+			( ( MainActivity ) pestanias.getActivity() ).muestraAccesos();
+		}
+	}
+
+	public void setPestanias ( PestaniasFragment pestanias ){
+		this.pestanias = pestanias;
+	}
+
 
 }
