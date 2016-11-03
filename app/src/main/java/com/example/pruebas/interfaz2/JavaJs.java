@@ -1,23 +1,35 @@
 package com.example.pruebas.interfaz2;
 
 import android.util.Log;
-import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
-import android.widget.Spinner;
 
 /**
  * Created by pruebas on 8/09/16.
  */
 public class JavaJs {
 
+	private static JavaJs instancia;
+
 	private String contenido = "";
 	private boolean estadoBloqueado = false;
 	private int opcionNavegacion = 0;
 
 	private WebView pagina = null;
+	private WebView webReferencias = null;
 	private PrimeraSeccion primeraSeccion = null;
 	private PestaniasFragment pestanias = null;
+
+	private JavaJs (){
+	}
+
+	static {
+		instancia = new JavaJs();
+	}
+
+	public static JavaJs getInstancia (){
+		return instancia;
+	}
 
 	@JavascriptInterface
 	public void guardaContenido ( String contenido ){
@@ -95,5 +107,18 @@ public class JavaJs {
 		this.pestanias = pestanias;
 	}
 
+	@JavascriptInterface
+	public void verComentario ( String pagina ){
+		Log.i( "InfoEx-PuenteApp", "referencias - cargando : " + pagina );
+		if ( pestanias != null ){
+			( ( MainActivity ) pestanias.getActivity() ).muestraReferencias();
+			webReferencias.loadUrl( pagina );
+		}
+	}
+
+	public void setWebReferencias ( WebView webReferencias ){
+		this.webReferencias = webReferencias;
+		Log.i( "InfoEx-PuenteApp", "referencias - configurada" );
+	}
 
 }

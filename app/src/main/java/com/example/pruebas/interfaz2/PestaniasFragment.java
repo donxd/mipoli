@@ -76,6 +76,7 @@ public class PestaniasFragment extends Fragment {
 
 		cargaPreferencias();
 		seccion1.setContext( context );
+		seccion2.setContext( context );
 	}
 
 	private void cargaPreferencias () {
@@ -96,6 +97,7 @@ public class PestaniasFragment extends Fragment {
 	public void configuraBarraHerramientas ( Spinner listaHerramientas ){
 		listaPlanteles = listaHerramientas;
 		seccion1.setControlPlanteles( listaPlanteles );
+		seccion2.setControlPlanteles( listaPlanteles );
 		//Spinner listaHerramientas = (Spinner) vistaPrincipal.findViewById( R.id.lista_herramientas );
 		listaHerramientas.setAdapter( getAdaptadorDatos() );
 		listaHerramientas.setOnItemSelectedListener( getEventoSeleccionPlantel() );
@@ -156,6 +158,7 @@ public class PestaniasFragment extends Fragment {
 
 	private void redirigePlantelPreferencia (){
 		seccion1.redirigePlantel();
+		seccion2.redirigePlantelReferencias();
 	}
 
 	private AdapterView.OnItemSelectedListener getEventoSeleccionAcceso (){
@@ -196,7 +199,7 @@ public class PestaniasFragment extends Fragment {
 						muestraAccesos();
 						break;
 					case 1:
-						ocultaPlanteles();
+						muestraPlanteles();
 						ocultaAccesos();
 						seccion2.revisaConexionInternet();
 						break;
@@ -314,8 +317,8 @@ public class PestaniasFragment extends Fragment {
 		@Override
 		public CharSequence getPageTitle ( int position ){
 			switch ( position ){
-				case 0: return "Primera";
-				case 1: return "Segunda";
+				case 0: return "SAES";
+				case 1: return "Referencias";
 				case 2: return "Tercera";
 			}
 
@@ -324,5 +327,16 @@ public class PestaniasFragment extends Fragment {
 
 	}
 
+	public ViewPager getViewPager (){
+		return viewPager;
+	}
+
+	public AdaptadorPestanias getAdaptadorPestanias (){
+		return adaptadorPestanias;
+	}
+
+	public void cambiaPestania ( int posicion ){
+		viewPager.setCurrentItem( posicion, false );
+	}
 
 }

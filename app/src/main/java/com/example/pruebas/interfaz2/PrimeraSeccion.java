@@ -51,7 +51,8 @@ public class PrimeraSeccion extends Fragment {
 
 	private final String marcaLog = "InfoEx";
 	private final String rutaScript = "js/core.js";
-	private JavaJs javaJs = new JavaJs();
+	// private JavaJs javaJs = new JavaJs();
+	private JavaJs javaJs = JavaJs.getInstancia();
 	//private boolean inyeccionRealizada = false;
 
 	private FloatingActionButton botonFlotante;

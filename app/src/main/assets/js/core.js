@@ -1308,7 +1308,7 @@ function conexionDiccionario (){
 		case 'esiqie':
 		case 'esit':
 		case 'upiig':
-			destinoConexion = 'http://diccionariodemaestros.com/' + plantel;
+			destinoConexion = 'http://diccionariodemaestros.com/' + plantel +'/';
 			break;
 		case 'upiicsa':
 			destinoConexion = 'http://foroupiicsa.net/diccionario/';
@@ -2271,11 +2271,26 @@ function getEnlaceDiccionario ( asignaturaH ){
 	return enlaceDiccionario;
 }
 
-function enlaceVerComentarios (){
-	document.getElementsByName( 'n' )[0].value = this.innerHTML;
-	document.getElementById( ID_CONTROL_COMENTARIO_RAPIDO ).submit();
-	estadoSeleccion = false;
-	setTimeout( 'estadoSeleccion = true;', UN_SEGUNDO );
+function enlaceVerComentarios ( evento ){
+	evento.stopPropagation();
+	try {
+
+
+		var paginaReferencia = getPaginaReferencia( this.innerHTML );
+		androidJs.verComentario( paginaReferencia );
+
+	} catch ( error ){
+		log( error );
+		
+		document.getElementsByName( 'n' )[0].value = this.innerHTML;
+		document.getElementById( ID_CONTROL_COMENTARIO_RAPIDO ).submit();
+		estadoSeleccion = false;
+		setTimeout( 'estadoSeleccion = true;', UN_SEGUNDO );
+	}
+}
+
+function getPaginaReferencia ( seleccion ){
+	return document.getElementById( ID_CONTROL_COMENTARIO_RAPIDO ).action + '?sec=buscar&n='+ encodeURI( seleccion );
 }
 
 function getInformacionRegistro ( tablaRegistros, controlSeleccion ){

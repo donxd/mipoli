@@ -251,4 +251,13 @@ public class MainActivity extends AppCompatActivity {
 		return (int) getResources().getDimension(R.dimen.barra_herramientas);
 	}
 
+	public void muestraReferencias (){
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				pestaniasFragment.cambiaPestania( 1 );
+			}
+		});
+	}
+
 }

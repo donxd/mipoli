@@ -1,12 +1,18 @@
 package com.example.pruebas.interfaz2;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.example.pruebas.interfaz2.R;
@@ -17,6 +23,13 @@ import java.net.UnknownHostException;
 public class SegundaSeccion extends Fragment {
 
 	private View vista = null;
+	private static boolean paginaConfigurada = false;
+	private JavaJs javaJs = JavaJs.getInstancia();
+
+	private Context context;
+	private WebView pagina;
+	private SharedPreferences preferencias;
+	private Spinner controlListaPlanteles;
 
 	@Nullable
 	@Override
@@ -28,6 +41,53 @@ public class SegundaSeccion extends Fragment {
 	public void onViewCreated ( View view, Bundle savedInstanceState ){
 		vista = view;
 		vista.setTag( "s2" );
+
+		if ( !paginaConfigurada ){
+			cargaPaginaReferencias();
+			paginaConfigurada = true;
+		}
+	}
+
+	public void cargaPaginaReferencias (){
+
+		cargaPreferencias();
+
+		String paginaCargar = getPaginaCargar();
+
+		pagina = (WebView) vista.findViewById( R.id.webReferencias );
+		
+		pagina.getSettings().setBuiltInZoomControls( true );
+		pagina.getSettings().setSupportZoom( true );
+		pagina.getSettings().setJavaScriptEnabled( true );
+		pagina.setWebViewClient( new WebViewClient() );
+
+		// javaJs.setPrimeraSeccion( (PrimeraSeccion) this );
+		// javaJs.setPagina( pagina );
+		javaJs.setWebReferencias( pagina );
+		// pagina.addJavascriptInterface( javaJs, "androidJs" );
+
+		pagina.loadUrl( paginaCargar );
+	}
+
+	private void cargaPreferencias () {
+		preferencias = PreferenceManager.getDefaultSharedPreferences( this.context );
+	}
+
+	private String getPaginaCargar (){
+		String plantel = preferencias.getString( "plantel", "" );
+		if ( plantel.length() == 0 ) {
+			plantel = controlListaPlanteles.getSelectedItem().toString();
+		}
+
+		return String.format( "http://diccionariodemaestros.com/%s/", plantel.toLowerCase() );
+	}
+
+	public void setContext( Context context ){
+		this.context = context;
+	}
+
+	public void setControlPlanteles ( Spinner controlListaPlanteles ){
+		this.controlListaPlanteles = controlListaPlanteles;
 	}
 
 	public void revisaConexionInternet(){
@@ -64,6 +124,11 @@ public class SegundaSeccion extends Fragment {
 			textView.setText( salida );
 		}
 
+	}
+
+	public void redirigePlantelReferencias (){
+		String paginaCargar = getPaginaCargar();
+		pagina.loadUrl( paginaCargar );
 	}
 
 
