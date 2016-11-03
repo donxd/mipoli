@@ -4,5 +4,5 @@
     android:layout_height="match_parent"
     android:textColor="#000"
     android:padding="10dp"
-    android:singleLine="true"
+    android:maxLines="1"
     android:ellipsize="marquee" />
