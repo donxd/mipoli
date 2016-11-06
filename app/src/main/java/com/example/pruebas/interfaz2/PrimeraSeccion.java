@@ -115,8 +115,8 @@ public class PrimeraSeccion extends Fragment {
 		pagina.getSettings().setBuiltInZoomControls( true );
 		pagina.getSettings().setJavaScriptEnabled( true );
 		pagina.getSettings().setPluginState( WebSettings.PluginState.ON );
-		pagina.getSettings().setDatabaseEnabled( true );
 		pagina.getSettings().setDatabasePath( context.getDir("database", Context.MODE_PRIVATE).getPath() );
+		pagina.getSettings().setDatabaseEnabled( true );
 		pagina.getSettings().setSupportZoom( true );
 		configuraZoom( pagina );
 		pagina.setWebViewClient( new WebViewClient() {
