@@ -19,6 +19,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.Spinner;
 
@@ -256,6 +257,15 @@ public class MainActivity extends AppCompatActivity {
 			@Override
 			public void run() {
 				pestaniasFragment.cambiaPestania( 1 );
+			}
+		});
+	}
+
+	public void cargaEnlaceReferencia ( final WebView webReferencias, final String pagina ){
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				webReferencias.loadUrl( pagina );
 			}
 		});
 	}

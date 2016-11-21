@@ -112,7 +112,7 @@ public class JavaJs {
 		Log.i( "InfoEx-PuenteApp", "referencias - cargando : " + pagina );
 		if ( pestanias != null ){
 			( ( MainActivity ) pestanias.getActivity() ).muestraReferencias();
-			webReferencias.loadUrl( pagina );
+			( ( MainActivity ) pestanias.getActivity() ).cargaEnlaceReferencia( webReferencias, pagina );
 		}
 	}
 
