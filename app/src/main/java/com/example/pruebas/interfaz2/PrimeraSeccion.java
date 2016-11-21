@@ -17,6 +17,7 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -116,8 +117,12 @@ public class PrimeraSeccion extends Fragment {
 		pagina.getSettings().setJavaScriptEnabled( true );
 		pagina.getSettings().setPluginState( WebSettings.PluginState.ON );
 		pagina.getSettings().setDatabasePath( context.getDir("database", Context.MODE_PRIVATE).getPath() );
+		pagina.getSettings().setSaveFormData(false);
+        // pagina.set
+		pagina.getSettings().setSavePassword( false );
 		pagina.getSettings().setDatabaseEnabled( true );
 		pagina.getSettings().setSupportZoom( true );
+        pagina.clearFormData();
 		configuraZoom( pagina );
 		pagina.setWebViewClient( new WebViewClient() {
 
@@ -181,6 +186,35 @@ public class PrimeraSeccion extends Fragment {
 					webView.setVisibility( View.GONE );
 					*/
 				pagina.setVisibility(View.GONE);
+			}
+
+		});
+
+
+		pagina.setOnTouchListener( new View.OnTouchListener(){
+			@Override
+			public boolean onTouch(View v, MotionEvent event ){
+
+				switch (event.getAction()) {
+					case MotionEvent.ACTION_DOWN:
+					case MotionEvent.ACTION_UP:
+						/*
+						if ( !v.hasFocus() ){
+							v.requestFocus();
+						}
+						*/
+						//if (!v.requestFocus()) {
+						if ( !v.hasFocus() ){
+							v.requestFocus();
+							InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+							imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
+
+						}
+
+						break;
+				}
+
+				return false;
 			}
 
 		});
@@ -262,6 +296,7 @@ public class PrimeraSeccion extends Fragment {
 	}
 
 	private String getPaginaCargar (){
+		// cargaPreferencias();
 		String plantel = preferencias.getString("plantel", "");
 		if ( plantel.length() == 0 ) {
 			plantel = controlListaPlanteles.getSelectedItem().toString();
@@ -276,6 +311,9 @@ public class PrimeraSeccion extends Fragment {
 
 	public void redirigePlantel (){
 		String paginaCargar = getPaginaCargar();
+		// if ( pagina == null ){
+		// 	pagina = (WebView) vista.findViewById(R.id.nav_web);
+		// }
 		pagina.loadUrl( paginaCargar );
 	}
 
