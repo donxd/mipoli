@@ -340,6 +340,10 @@ public class PestaniasFragment extends Fragment {
 		viewPager.setCurrentItem( posicion, false );
 	}
 
+	public PrimeraSeccion getPrimeraSeccion (){
+		return seccion1;
+	}
+
 	/*
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {

@@ -481,4 +481,8 @@ public class PrimeraSeccion extends Fragment {
 		javaJs.setPestanias( pestanias );
 	}
 
+	public WebView getControlSaes (){
+		return pagina;
+	}
+
 }

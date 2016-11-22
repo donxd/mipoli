@@ -1,6 +1,8 @@
 package com.example.pruebas.interfaz2;
 
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
@@ -22,6 +24,7 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 		// implements NavigationView.OnNavigationItemSelectedListener {
@@ -268,6 +271,39 @@ public class MainActivity extends AppCompatActivity {
 				webReferencias.loadUrl( pagina );
 			}
 		});
+	}
+
+	@Override
+	public void onConfigurationChanged ( Configuration newConfig ){
+		super.onConfigurationChanged( newConfig );
+
+		String ajusteJs = null;
+		if ( newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ){
+			Log.i( "Info", "estado horizontal" );
+			ajusteJs = "presentacionHorizontal()";
+		}
+
+		if ( newConfig.orientation == Configuration.ORIENTATION_PORTRAIT ){
+			Log.i( "Info", "estado vertical" );
+			ajusteJs = "presentacionVertical()";
+		}
+
+		if ( ajusteJs != null ){
+			if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ){
+				pestaniasFragment.getPrimeraSeccion().getControlSaes().evaluateJavascript( ajusteJs, null );
+			} else {
+				pestaniasFragment.getPrimeraSeccion().getControlSaes().loadUrl( "javascript:" + ajusteJs );
+			}
+		}
+
+	}
+
+	public int getOrientacion (){
+		return getResources().getConfiguration().orientation;
+	}
+
+	public boolean esOrientacionVertical (){
+		return getOrientacion() == Configuration.ORIENTATION_PORTRAIT;
 	}
 
 }
