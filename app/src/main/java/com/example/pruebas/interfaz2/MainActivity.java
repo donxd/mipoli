@@ -223,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private void ajustaBarraHerramientas (){
-		if ( android.os.Build.VERSION.SDK_INT > 17 ){
+		if ( android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR1 ){
 
 			int tamanioBarraHerramientas = getTamanioBarraHerramientas();
 
@@ -273,30 +273,30 @@ public class MainActivity extends AppCompatActivity {
 		});
 	}
 
-	@Override
-	public void onConfigurationChanged ( Configuration newConfig ){
-		super.onConfigurationChanged( newConfig );
+	// @Override
+	// public void onConfigurationChanged ( Configuration newConfig ){
+	// 	super.onConfigurationChanged( newConfig );
 
-		String ajusteJs = null;
-		if ( newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ){
-			Log.i( "Info", "estado horizontal" );
-			ajusteJs = "presentacionHorizontal()";
-		}
+	// 	String ajusteJs = null;
+	// 	if ( newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ){
+	// 		Log.i( "Info", "estado horizontal" );
+	// 		ajusteJs = "presentacionHorizontal()";
+	// 	}
 
-		if ( newConfig.orientation == Configuration.ORIENTATION_PORTRAIT ){
-			Log.i( "Info", "estado vertical" );
-			ajusteJs = "presentacionVertical()";
-		}
+	// 	if ( newConfig.orientation == Configuration.ORIENTATION_PORTRAIT ){
+	// 		Log.i( "Info", "estado vertical" );
+	// 		ajusteJs = "presentacionVertical()";
+	// 	}
 
-		if ( ajusteJs != null ){
-			if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ){
-				pestaniasFragment.getPrimeraSeccion().getControlSaes().evaluateJavascript( ajusteJs, null );
-			} else {
-				pestaniasFragment.getPrimeraSeccion().getControlSaes().loadUrl( "javascript:" + ajusteJs );
-			}
-		}
+	// 	if ( ajusteJs != null ){
+	// 		if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ){
+	// 			pestaniasFragment.getPrimeraSeccion().getControlSaes().evaluateJavascript( ajusteJs, null );
+	// 		} else {
+	// 			pestaniasFragment.getPrimeraSeccion().getControlSaes().loadUrl( "javascript:" + ajusteJs );
+	// 		}
+	// 	}
 
-	}
+	// }
 
 	public int getOrientacion (){
 		return getResources().getConfiguration().orientation;

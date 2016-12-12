@@ -133,7 +133,7 @@ public class PrimeraSeccion extends Fragment {
 					pagina.setVisibility( View.VISIBLE );
 				}
 
-				if ( android.os.Build.VERSION.SDK_INT > 20 && ultimoZoom > 0.01 ){
+				if ( android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.KITKAT_WATCH && ultimoZoom > 0.01 ){
 					webview.zoomBy( ultimoZoom );
 					// Log.i( marcaLog, "zoom e : " + ultimoZoom );
 				} else {
@@ -345,6 +345,8 @@ public class PrimeraSeccion extends Fragment {
 
 			if ( contenidoInyeccionJS.length() > 0 ){
 				webview.loadUrl( contenidoInyeccionJS );
+				webview.loadUrl( "javascript:setVersionAndroid(" + Build.VERSION.SDK_INT +")");
+				Log.i( marcaLog, "Version android : " + Build.VERSION.SDK_INT );
 				//inyeccionRealizada = true;
 			}
 

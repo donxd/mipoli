@@ -409,7 +409,7 @@ function detectaIdentificacion (){
 
 	if ( usuario != null && pass != null ){
 		if ( almacenamientoDatos() ){
-			muestraMensajeAlmacenamiento();
+			// muestraMensajeAlmacenamiento();
 			agregaComportamientoControlesIdentificacion( usuario, pass );
 			recuperaDatosIdentificacion();
 		} else {
@@ -1758,7 +1758,7 @@ function pantallaHorarios (){
 	}
 
 	agregaComportamientoTamanioPantalla();
-	presentaMedidasPantalla();
+	// presentaMedidasPantalla();
 }
 
 function hayInformacionHorarios (){
@@ -1860,6 +1860,8 @@ function seleccionOpcion (){
 	} else {
 		eliminarRegistroSeleccion( registroSeleccionado );
 	}
+	eliminaAjustesAnteriores();
+	ajustaContenedoresTamanioPantalla();
 	removerMarcaResaltado();
 	visiualizacionSabado( numeroDias );
 }
@@ -2063,7 +2065,7 @@ function agregaComportamientoControlEliminarMateria ( elemento ){
 }
 
 function getUrlImagenBorrar (){
-	return 'http://i.imgur.com/XUH5haP.png';
+	return 'https://i.imgur.com/XUH5haP.png';
 }
 
 
@@ -2896,7 +2898,7 @@ function agregaEstilosSeleccionMaterias ( estilosSeleccionMaterias ){
 	estilosSeleccionMaterias.innerHTML +=
 		".tooltip { display : inline; position : relative; } ";
 	estilosSeleccionMaterias.innerHTML +=
-		".tooltip:hover:after { background : rgba(0,0,0,.75); border-radius : 5px; bottom : 26px; color : #FFF; content : attr(title); font-size : 14px; text-aling : justify; left : 20%; padding : 5px 15px; position : absolute; z-index : 98; width : 220px; } ";
+		".tooltip:hover:after { background : rgba(0,0,0,.75); border-radius : 5px; bottom : 26px; color : #FFF; content : attr(title); font-size : 14px; text-aling : justify; left : 20%; padding : 5px 15px; position : absolute; z-index : 98; width : 160px; } ";
 	estilosSeleccionMaterias.innerHTML +=
 		".tooltip:hover:before { border : solid; border-color : #000 transparent; border-width : 6px 6px 0 6px; bottom : 20px; content : ''; left : 50%; position : absolute; z-index : 99; } ";
 	estilosSeleccionMaterias.innerHTML +=
@@ -4430,7 +4432,7 @@ function agregaComportamientoTamanioPantalla (){
 
 function realizarAjustePantalla (){
 	eliminaAjustesAnteriores();
-	presentaMedidasPantalla();
+	// presentaMedidasPantalla();
 	ajustaContenedoresTamanioPantalla();
 	ajustandoPantalla = false;
 }
@@ -4447,6 +4449,7 @@ function presentaMedidasPantalla (){
 	document.querySelector( '.container > h2' ).innerHTML = '[ w : '+ window.innerWidth + ', h : ' + window.innerHeight + ' ]';
 }
 
+var versionAndroid = 0;
 function ajustaContenedoresTamanioPantalla (){
 	var contenedorResultadoHorarios = document.getElementById( ID_CONTENEDOR_RESULTADOS_HORARIOS );
 	var contenedorAsignaturasSeleccionadas = document.getElementById( ID_LISTA_SELECCION );
@@ -4461,13 +4464,22 @@ function ajustaContenedoresTamanioPantalla (){
 	}
 
 	var alturaAsignaturas = document.getElementById( ID_CONTENEDOR_MATERIAS_SELECCIONADAS ).offsetHeight;
+	var alturaAjuste = alturaAsignaturas - alturaRegresar - alturaControlesHorarios - alturaInformacionHorarios;
 
-	var medidaAjuste = 'calc( '+ alturaAsignaturas +'px - '+ alturaRegresar +'px - '+ alturaControlesHorarios +'px - '+ alturaInformacionHorarios +'px ) !important;';
+	if ( versionAndroid < VERSION_KITKAT ){
+		alturaAjuste - 15;
+	}
 
-	contenedorResultadoHorarios.setAttribute( 'style', 'max-height : ' + medidaAjuste );
-	contenedorAsignaturasSeleccionadas.setAttribute( 'style', 'max-height : ' + medidaAjuste );
+	var medidaAjuste = 'max-height : '+ alturaAjuste +'px !important;';
+
+	contenedorResultadoHorarios.setAttribute( 'style', medidaAjuste );
+	contenedorAsignaturasSeleccionadas.setAttribute( 'style', medidaAjuste );
 
 	log( 'Pantalla ajustada' );
+}
+
+function setVersionAndroid ( version ){
+	versionAndroid = version;
 }
 
 var IDENTIFICACION_USUARIO  = 'usuario';
@@ -4772,6 +4784,7 @@ var MENSAJE_OCULTAR_TODOS_RESULTADOS = 'Ocultar resultados';
 
 var SELECTOR_HORARIO_GENERADO = '[name=horariosGenerados]';
 var ID_CONTROL_VER_TODOS_RESULTADOS = 'verTodosResultados';
+var VERSION_KITKAT = 19;
 
 function iniciar (){
 	try {
