@@ -18,6 +18,7 @@ public class JavaJs {
 	private WebView pagina = null;
 	private WebView webReferencias = null;
 	private PrimeraSeccion primeraSeccion = null;
+	private TerceraSeccion terceraSeccion = null;
 	private PestaniasFragment pestanias = null;
 
 	private JavaJs (){
@@ -74,6 +75,11 @@ public class JavaJs {
 		Log.i( "InfoEx-PuenteApp", "controlador Android - configurado" );
 	}
 
+	public void setTerceraSeccion ( TerceraSeccion terceraSeccion ){
+		this.terceraSeccion = terceraSeccion;
+		Log.i( "InfoEx-PuenteApp", "controlador Android - configurado" );
+	}
+
 	@JavascriptInterface
 	public int getOpcionNavegacion (){
 		if ( pagina != null ){
@@ -119,6 +125,34 @@ public class JavaJs {
 	public void setWebReferencias ( WebView webReferencias ){
 		this.webReferencias = webReferencias;
 		Log.i( "InfoEx-PuenteApp", "referencias - configurada" );
+	}
+
+	@JavascriptInterface
+	public void transfiereSesion (){
+		Log.i( "InfoEx-PuenteApp", "Transfiriendo session - android" );
+		if ( pestanias != null ){
+			( ( MainActivity ) pestanias.getActivity() ).comparteSesion();
+		}
+	}
+
+	@JavascriptInterface
+	public void alertaFaltaSesion (){
+		Log.i( "InfoEx-PuenteApp", " No hay session - android" );
+		if ( pestanias != null ){
+			( ( MainActivity ) pestanias.getActivity() ).inactivaTransferenciaSesion();
+		}
+	}
+
+	@JavascriptInterface
+	public void cargaAd (){
+		Log.i( "InfoEx-PuenteApp", " Cargando ad " );
+		( ( MainActivity ) pestanias.getActivity() ).muestraPublicidad();
+	}
+
+	@JavascriptInterface
+	public void cargaInterstitialAd (){
+		Log.i( "InfoEx-PuenteApp", " Cargando IAd" );
+		( ( MainActivity ) pestanias.getActivity() ).muestraPublicidadInterstitial();
 	}
 
 }

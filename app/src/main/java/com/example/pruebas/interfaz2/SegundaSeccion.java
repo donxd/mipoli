@@ -131,5 +131,8 @@ public class SegundaSeccion extends Fragment {
 		pagina.loadUrl( paginaCargar );
 	}
 
+	public WebView getControlReferencias (){
+		return pagina;
+	}
 
 }

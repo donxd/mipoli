@@ -22,16 +22,25 @@
             app:popupTheme="@style/AppTheme.PopupOverlay">
 
             <android.support.v7.widget.AppCompatSpinner
-                android:layout_width="wrap_content"
+                android:layout_width="90dip"
                 android:layout_height="wrap_content"
                 android:id="@+id/lista_herramientas"
                 android:spinnerMode="dialog" />
 
             <android.support.v7.widget.AppCompatSpinner
-                android:layout_width="wrap_content"
+                android:layout_width="80dip"
                 android:layout_height="wrap_content"
                 android:id="@+id/lista_accesos"
                 android:spinnerMode="dialog" />
+
+            <ImageButton
+                android:layout_gravity="right"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:srcCompat="@android:drawable/stat_notify_sync_noanim"
+                android:background="@drawable/boton"
+                android:layout_marginRight="5dp"
+                android:id="@+id/controlRecargar" />
 
         </android.support.v7.widget.Toolbar>
 

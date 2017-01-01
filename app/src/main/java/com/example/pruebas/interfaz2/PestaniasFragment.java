@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
@@ -32,7 +33,6 @@ public class PestaniasFragment extends Fragment {
 	private final TerceraSeccion seccion3 = new TerceraSeccion();
 	private OpcionesPlantel opcionesPlantel = new OpcionesPlantel();
 	private OpcionesAccesos opcionesAccesos = new OpcionesAccesos();
-
 
 	private Spinner listaPlanteles;
 	private Spinner listaAccesos;
@@ -78,6 +78,7 @@ public class PestaniasFragment extends Fragment {
 		cargaPreferencias();
 		seccion1.setContext( context );
 		seccion2.setContext( context );
+		seccion3.setContext( context );
 	}
 
 	private void cargaPreferencias () {
@@ -99,6 +100,7 @@ public class PestaniasFragment extends Fragment {
 		listaPlanteles = listaHerramientas;
 		seccion1.setControlPlanteles( listaPlanteles );
 		seccion2.setControlPlanteles( listaPlanteles );
+		seccion3.setControlPlanteles( listaPlanteles );
 		//Spinner listaHerramientas = (Spinner) vistaPrincipal.findViewById( R.id.lista_herramientas );
 		listaHerramientas.setAdapter( getAdaptadorDatos() );
 		listaHerramientas.setOnItemSelectedListener( getEventoSeleccionPlantel() );
@@ -107,6 +109,7 @@ public class PestaniasFragment extends Fragment {
 	public void configuraBarraAccesos ( Spinner controlAccesos ){
 		listaAccesos = controlAccesos;
 		seccion1.setControlAccesos( listaAccesos );
+		seccion3.setControlAccesos( listaAccesos );
 		//Spinner controlAccesos = (Spinner) vistaPrincipal.findViewById( R.id.lista_herramientas );
 		controlAccesos.setAdapter( getAdaptadorAccesos() );
 		controlAccesos.setOnItemSelectedListener( getEventoSeleccionAcceso() );
@@ -205,7 +208,7 @@ public class PestaniasFragment extends Fragment {
 						seccion2.revisaConexionInternet();
 						break;
 					case 2:
-						ocultaPlanteles();
+						muestraPlanteles();
 						ocultaAccesos();
 						break;
 				}
@@ -242,6 +245,10 @@ public class PestaniasFragment extends Fragment {
 		// fragmentTransaction.detach( manejador );
 		// fragmentTransaction.commit();
 		seccion1.controlaPaginaSaes();
+	}
+
+	private void controlaTerceraSeccion (){
+		seccion3.controlaPaginaLugares();
 	}
 
 	public void setManejador ( FragmentManager manejador ) {
@@ -305,7 +312,7 @@ public class PestaniasFragment extends Fragment {
 				case 0  : return seccion1;
 				case 1  : return seccion2;
 				case 2  : return seccion3;
-				default : return  null;
+				default : return null;
 			}
 
 		}
@@ -320,7 +327,7 @@ public class PestaniasFragment extends Fragment {
 			switch ( position ){
 				case 0: return "SAES";
 				case 1: return "Referencias";
-				case 2: return "Tercera";
+				case 2: return "Lugares";
 			}
 
 			return null;
@@ -342,6 +349,22 @@ public class PestaniasFragment extends Fragment {
 
 	public PrimeraSeccion getPrimeraSeccion (){
 		return seccion1;
+	}
+
+	public SegundaSeccion getSegundaSeccion (){
+		return seccion2;
+	}
+
+	public TerceraSeccion getTerceraSeccion (){ 
+		return seccion3; 
+	}
+
+	public OpcionesPlantel getOpcionesPlantel (){ 
+		return opcionesPlantel;
+	}
+
+	public OpcionesAccesos getOpcionesAccesos (){ 
+		return opcionesAccesos;
 	}
 
 	/*

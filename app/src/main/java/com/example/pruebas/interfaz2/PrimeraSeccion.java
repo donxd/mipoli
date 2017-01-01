@@ -113,13 +113,11 @@ public class PrimeraSeccion extends Fragment {
 
 		pagina = (WebView) vista.findViewById(R.id.nav_web);
 		pagina.getSettings().setDomStorageEnabled( true );
-		pagina.getSettings().setBuiltInZoomControls( true );
+		//pagina.getSettings().setBuiltInZoomControls( true );
 		pagina.getSettings().setJavaScriptEnabled( true );
 		pagina.getSettings().setPluginState( WebSettings.PluginState.ON );
-		pagina.getSettings().setDatabasePath( context.getDir("database", Context.MODE_PRIVATE).getPath() );
-		pagina.getSettings().setSaveFormData(false);
-        // pagina.set
-		pagina.getSettings().setSavePassword( false );
+		pagina.getSettings().setDatabasePath( context.getDir( "database", Context.MODE_PRIVATE ).getPath() );
+		// pagina.getSettings().setSaveFormData(false);
 		pagina.getSettings().setDatabaseEnabled( true );
 		pagina.getSettings().setSupportZoom( true );
         pagina.clearFormData();
@@ -331,6 +329,14 @@ public class PrimeraSeccion extends Fragment {
 	private String getPaginaAcceso ( Spinner listaAccesos ){
 		String acceso = listaAccesos.getSelectedItem().toString();
 
+		return String.format( 
+			"%s%s"
+			, getPaginaCargar()
+			, OpcionesAccesos.getDireccionAcceso( acceso )
+		);
+	}
+
+	public String getPaginaAcceso ( String acceso ){
 		return String.format( 
 			"%s%s"
 			, getPaginaCargar()

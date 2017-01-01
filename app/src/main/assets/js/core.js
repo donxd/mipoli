@@ -17,11 +17,25 @@ HTMLElement.prototype.mostrar = function (){
 }
 
 function ajustarDisenio (){
-	ajustaEstructuraPagina();
-	ajustaMenu();
+	if ( !esPaginaInicial() ){
+		ajustaEstructuraPagina();
+		ajustaMenu();
+		ajustaElementos();
+	}
 	ajustaEnlaces();
-	ajustaElementos();
 	ajustaColorFondo();
+}
+
+function esPaginaInicial (){
+	switch ( location.pathname ){
+		case PAGINA_INICIO:
+		case PAGINA_PRINCIPAL1:
+		case PAGINA_PRINCIPAL2: 
+			return true;
+		default : 
+			return false;
+	}
+
 }
 
 function ajustaEstructuraPagina (){
@@ -413,8 +427,10 @@ function detectaIdentificacion (){
 			agregaComportamientoControlesIdentificacion( usuario, pass );
 			recuperaDatosIdentificacion();
 		} else {
-			muestraMensajeNoAlmacenamiento();
+			// muestraMensajeNoAlmacenamiento();
 		}
+
+		modificaControlCaptcha();
 	}
 }
 
@@ -553,6 +569,7 @@ function agregaControlesOcupabilidad (){
 		if ( elemento.tBodies.length > 0 && elemento.tBodies[ 0 ].rows.length > 1 ){
 			marcaOcupados();
 			agregaBuscador( BUSCADOR_OCUPABILIDAD );
+			cargaAd();
 		}
 	});
 }
@@ -795,7 +812,7 @@ function actualizaOcupabilidad2 (){
 function insertarControlExportarImportar ( controlesBuscador ){
 	controlesBuscador
 		.innerHTML +=
-			"<input type='button' id='" + ID_CONTROL_EXPIMP + "' value='" + CONTROL_IMPORTAR + "' title='" + MENSAJE_IMPORTAR + "'/>"+
+			"<input type='button' class='oculto' id='" + ID_CONTROL_EXPIMP + "' value='" + CONTROL_IMPORTAR + "' title='" + MENSAJE_IMPORTAR + "'/>"+
 			"<div id='" + ID_CONTENEDOR_EXPORTAR + "'>"+
 				"<input id='" + ID_CONTROL_IMPORTACION + "' type = 'file'/>"+
 				"<span class='importar'>" + MENSAJE_IMPORTAR_AREA +"</span>"+
@@ -1597,7 +1614,7 @@ function creaEnlaceComprobanteDirecto ( boton, boleta ){
 
 function getEnlaceComprobanteDirecto ( boleta ){
 	return 'http://docs.google.com/gview?embedded=true&url='+
-				location.protocol + '//' + location.host + '/PDF/Alumnos/Reinscripciones/' + boleta + '-ComprobanteHorario.pdf';
+				location.protocol + '//' + location.host + '/PDF/Alumnos/Reinscripciones/' + boleta + '-ComprobanteHorario.temp.pdf';
 }
 
 function pantallaReinscribir (){
@@ -1755,6 +1772,7 @@ function pantallaHorarios (){
 		cargarTraslapes();
 		// informacionExtra();
 		// realizarAjustePantalla();
+		cargaAd();
 	}
 
 	agregaComportamientoTamanioPantalla();
@@ -2830,7 +2848,7 @@ function agregaEstilosSeleccionMaterias ( estilosSeleccionMaterias ){
 
 	estilosSeleccionMaterias.innerHTML =
 		// 'div#asignaturas { min-height : 80px; min-width : 250px; position : fixed; background-color : maroon; color : white; top : 6%; left : 50%; opacity : 0.85; z-index : 1; font-size : 17px; margin : 0px 0px 0px -525px; box-shadow: 0 0 20px 5px #000; width: 1050px; } ';
-		'div#asignaturas { position : fixed; background-color : maroon; color : white; top : 0%; left : 0%; opacity : 0.85; z-index : 1; font-size : 17px; box-shadow: 0 0 20px 5px #000; min-width: 100%; max-height : 100%; } ';
+		'div#asignaturas { position : fixed; background-color : maroon; color : white; top : 0%; left : 0%; opacity : 0.90; z-index : 1; font-size : 17px; box-shadow: 0 0 20px 5px #000; min-width: 100%; max-height : 100%; } ';
 	estilosSeleccionMaterias.innerHTML +=
 		'div#asignaturas > div:nth-child(1) { background-color : #000; color : #FFF; } ';
 	estilosSeleccionMaterias.innerHTML +=
@@ -3736,6 +3754,7 @@ function mostrarTodosResultados (){
 
 			mostrarSeleccionMaterias();
 			cambiaMensajeVerTodosResultados();
+			realizarAjustePantalla();
 
 		} else {
 
@@ -3747,6 +3766,8 @@ function mostrarTodosResultados (){
 
 			ocultarListadoSeleccionAsignaturas();
 			cambiaMensajeOcultarTodosResultados();
+			realizarAjustePantalla2();
+			cargaInterstitialAd();
 		}
 
 	}
@@ -3858,6 +3879,9 @@ function getHorarioResultado ( tablaInformacion, combinacionHorarioResultado, n,
 	var posicionInformacionMateria = { posicion : 0 };
 	var mostrarSabado = false;
 
+	tablaInformacionN.rows[ 0 ].cells[ 0 ].innerHTML = MENSAJE_RESULTADO_NO + (n+1);
+	tablaInformacionN.rows[ 0 ].cells[ 0 ].setAttribute( 'colspan', NUMERO_COLUMNAS_HORARIO_GENERADO );
+
 	for ( var i = 0; i < combinacionHorarioResultado.secuencia.length; i++ ){
 
 		construyeHorarioResultado( tablaInformacionN, i, combinacionHorarioResultado,
@@ -3877,7 +3901,7 @@ function getHorarioResultado ( tablaInformacion, combinacionHorarioResultado, n,
 
 function construyeHorarioResultado ( tablaInformacionN, i, combinacionHorarioResultado, gruposOrdenados, posicionInformacionMateria ){
 
-	var registroTablaInformacion = tablaInformacionN.rows[ i+1 ];
+	var registroTablaInformacion = tablaInformacionN.rows[ i+2 ];
 	var materiaGrupoOrdenado = gruposOrdenados.materias[ i ];
 	var materiaSeleccionadaGrupoOrdenado = materiaGrupoOrdenado.grupos[ combinacionHorarioResultado.secuencia[ i ] ];
 
@@ -3893,6 +3917,7 @@ function construyeHorarioResultado ( tablaInformacionN, i, combinacionHorarioRes
 
 function getPlantillaHorarioResultado ( horariosPosiblesAnteriores ){
 	var tablaInformacion = document.createElement( 'table' );
+	tablaInformacion.setAttribute( 'style', 'border-collapse : collapse;' );
 
 	tablaInformacion.ocultar();
 	tablaInformacion.innerHTML = getEstructuraDiasHorario();
@@ -3900,16 +3925,18 @@ function getPlantillaHorarioResultado ( horariosPosiblesAnteriores ){
 	var numeroRegistrosMaterias = horariosPosiblesAnteriores.combinacion[ 0 ].secuencia.length;
 
 	for ( var i = 0; i < numeroRegistrosMaterias; i++ ){
-		tablaInformacion.insertRow( i+1 );
+		var posicionRenglon = i+2;
+		tablaInformacion.insertRow( posicionRenglon );
 
-		for ( var k = 0; k < NUMERO_COLUMNAS_HORARIO_GENERADO; k++ ) tablaInformacion.rows[ i+1 ].insertCell( k );
+		for ( var k = 0; k < NUMERO_COLUMNAS_HORARIO_GENERADO; k++ ) tablaInformacion.rows[ posicionRenglon ].insertCell( k );
 	}
 
 	return tablaInformacion;
 }
 
 function getEstructuraDiasHorario (){
-	return 	'<tr style="background-color:#FF9900; color:white;"><td>'+ MENSAJE_GRUPO
+	return 	'<tr style="background-color:#000; color:white;"><td></td> </tr>' +
+			'<tr style="background-color:#FF9900; color:white; /*font-weight: bold;*/ text-transform: uppercase;"><td>'+ MENSAJE_GRUPO
 				+ '</td> <td>'+ MENSAJE_MATERIA
 				+ '</td> <td>'+ MENSAJE_PROFESOR
 				+ '</td> <td>'+ MENSAJE_LUNES
@@ -3988,7 +4015,14 @@ function validaActivacionSabado ( mostrarSabado, materiaInformacion ){
 function ocultaSabadoHorario ( tablaInformacionN ){
 	// log("horariosGenerados - ocultando sábado");
 	for ( var k = 0; k < tablaInformacionN.rows.length; k++ ){
-		tablaInformacionN.rows[ k ].cells[ COLUMNA_DIA_SABADO2 ].style.display = 'none';
+		if ( tablaInformacionN.rows[ k ].cells.length > 1 ){
+			tablaInformacionN.rows[ k ].cells[ COLUMNA_DIA_SABADO2 ].style.display = 'none';
+		} else {
+			// var celda = tablaInformacionN.rows[ k ].cells[ 0 ];
+			// var celdas = celda.getAttribute( 'colspan' );
+			// celda.setAttribute( 'colspan', celdas );
+			tablaInformacionN.rows[ k ].cells[ 0 ].setAttribute( 'colspan', NUMERO_COLUMNAS_HORARIO_GENERADO-1 );
+		}
 	}
 }
 
@@ -4478,8 +4512,97 @@ function ajustaContenedoresTamanioPantalla (){
 	log( 'Pantalla ajustada' );
 }
 
+function realizarAjustePantalla2 (){
+	eliminaAjustesAnteriores();
+	ajustaContenedoresTamanioPantalla2();
+}
+
+function ajustaContenedoresTamanioPantalla2 (){
+	var contenedorResultadoHorarios = document.getElementById( ID_CONTENEDOR_RESULTADOS_HORARIOS );
+	var contenedorAsignaturasSeleccionadas = document.getElementById( ID_LISTA_SELECCION );
+
+	var alturaRegresar = document.querySelector( '.regresar' ).offsetHeight;
+	var alturaControlesHorarios = document.getElementById( ID_CONTENEDOR_CONTROLES_HORARIO ).offsetHeight;
+	var alturaInformacionHorarios = 0;
+
+	var contenedorInformacionHorarios = document.getElementById( ID_CONTENEDOR_INFORMACION_HORARIOS );
+	if ( !contenedorInformacionHorarios.classList.contains( 'oculto' ) ){
+		alturaInformacionHorarios = contenedorInformacionHorarios.offsetHeight;
+	}
+
+	var alturaAsignaturas = document.getElementById( ID_CONTENEDOR_MATERIAS_SELECCIONADAS ).offsetHeight;
+	var alturaAjuste = alturaAsignaturas - alturaRegresar - alturaControlesHorarios - alturaInformacionHorarios;
+
+	if ( versionAndroid < VERSION_KITKAT ){
+		alturaAjuste - 15;
+	}
+
+	var medidaAjuste = 'max-height : '+ alturaAjuste +'px !important;';
+
+	contenedorResultadoHorarios.setAttribute( 'style', medidaAjuste );
+	contenedorAsignaturasSeleccionadas.setAttribute( 'style', medidaAjuste );
+
+	log( 'Pantalla ajustada' );
+}
+
 function setVersionAndroid ( version ){
 	versionAndroid = version;
+}
+
+function modificaControlCaptcha (){
+	var enlaceCapcha = document.querySelector( SELECTOR_ENLACE_CAPTCHA );
+	if ( enlaceCapcha != null ){
+		enlaceCapcha.setAttribute( 'onclick', 'c_default_ctl00_leftcolumn_loginuser_logincaptcha.ReloadImage(); this.blur(); return false;' );
+		enlaceCapcha.href = '';
+	}
+}
+
+function detectaSesion (){
+	var usuario = getElemento( SELECTOR_USUARIO_IDENTIFICACION );
+	var pass    = getElemento( SELECTOR_PASS_IDENTIFICACION );
+
+	if ( usuario == null && pass == null ){
+		comparteSesion();
+	} else {
+		informaAusenciaSesion();
+	}
+}
+
+function comparteSesion (){
+	try {
+
+		androidJs.transfiereSesion();
+
+	} catch ( error ){
+		log( 'No se puede compartir la sesion' );
+	}
+}
+
+function informaAusenciaSesion (){
+	try {
+		androidJs.alertaFaltaSesion();
+
+	} catch ( error ){
+		log( 'No se puede informar que no hay sesion' );
+	}
+}
+
+function cargaAd (){
+	try {
+		androidJs.cargaAd();
+
+	} catch ( error ){
+		log( 'No se puedo cargar el ad' );
+	}
+}
+
+function cargaInterstitialAd (){
+	try {
+		androidJs.cargaInterstitialAd();
+
+	} catch ( error ){
+		log( 'No se puedo cargar el IAd' );
+	}
 }
 
 var IDENTIFICACION_USUARIO  = 'usuario';
@@ -4710,6 +4833,7 @@ var NUMERO_COLUMNAS_HORARIO_GENERADO = 9;
 
 var SELECTOR_REGISTROS_RESALTADOS = 'span.resaltar';
 var SELECTOR_CELDAS_SABADO = '#tablaAsignaturas td[name="sabado"]';
+var SELECTOR_ENLACE_CAPTCHA = 'a[href*="captcha.com"]';
 
 var ELIMINACION_REGISTRO  = 0;
 var ELIMINACION_SELECCION = 1;
@@ -4776,6 +4900,7 @@ var MENSAJE_GRADO_TRASLAPE    = 'Grado de Traslape (%)';
 var MENSAJE_CONFLICTOS        = 'Conflictos';
 var MENSAJE_MARCAR_TRASLAPE   = 'Marcar el traslape';
 var MENSAJE_VER_TRASLAPES     = '» Ver detalles de traslapes';
+var MENSAJE_RESULTADO_NO      = 'Resultado #';
 
 var ID_CONTENEDOR_TRASLAPES = 'detalleTraslapes';
 
@@ -4792,6 +4917,7 @@ function iniciar (){
 		ajustarDisenio();
 		detectaPantalla();
 		controlaAccesosApp();
+		detectaSesion();
 
 	} catch ( error ){
 		log( '@' + error );
