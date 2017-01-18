@@ -365,7 +365,7 @@ function detectaPantalla (){
 			pantallaCalificaciones();
 			break;
 		case PAGINA_INICIO_ACCESO:
-			// pantallaAlumnosInicio();
+			pantallaAlumnosInicio();
 			break;
 		case PAGINA_MAPA_CURRICULAR:
 			// informacionPlanes();
@@ -1521,8 +1521,9 @@ function pantallaCalificaciones (){
 }
 
 function pantallaAlumnosInicio (){
-	var boleta = document.getElementById( ID_CONTENEDOR_BOLETA );
+	// var boleta = document.getElementById( ID_CONTENEDOR_BOLETA );
 	// document.cookie = 'boleta='+boleta.innerText+';path=/';
+	cargaAd();
 }
 
 function informacionPlanes (){
