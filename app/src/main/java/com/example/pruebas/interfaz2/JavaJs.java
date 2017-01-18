@@ -90,10 +90,10 @@ public class JavaJs {
 		return 0;
 	}
 
-	@JavascriptInterface
-	public void setOpcionNavegacion ( int opcion ){
-		primeraSeccion.setOpcionNavegacion( opcion );
-	}
+	// @JavascriptInterface
+	// public void setOpcionNavegacion ( int opcion ){
+	// 	primeraSeccion.setOpcionNavegacion( opcion );
+	// }
 
 	@JavascriptInterface
 	public void ocultaAccesosRapidos (){
@@ -153,6 +153,27 @@ public class JavaJs {
 	public void cargaInterstitialAd (){
 		Log.i( "InfoEx-PuenteApp", " Cargando IAd" );
 		( ( MainActivity ) pestanias.getActivity() ).muestraPublicidadInterstitial();
+	}
+
+	@JavascriptInterface
+	public void imprimeMensaje ( String contenido ){
+		Log.i( "InfoEx-PuenteApp", getMensaje( contenido ) );
+	}
+
+	private String getMensaje ( String contenido ){
+		StringBuilder mensaje = new StringBuilder();
+
+		mensaje
+			.append( "Contenido = [" )
+			.append( contenido )
+			.append( "]" );
+
+		return mensaje.toString();
+	}
+
+	@JavascriptInterface
+	public void paginaCargada (){
+		( ( MainActivity ) pestanias.getActivity() ).resetearListadoCargado( "JS" );
 	}
 
 }

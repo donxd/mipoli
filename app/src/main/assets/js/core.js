@@ -1853,7 +1853,7 @@ function getControlSeleccion (){
 	var controlSeleccion   = document.createElement( 'input' );
 	controlSeleccion.type  = 'checkbox';
 	controlSeleccion.title = MENSAJE_AGREGAR_MATERIA;
-	controlSeleccion.setAttribute( 'class','tooltip' );
+	// controlSeleccion.setAttribute( 'class','tooltip' );
 
 	return controlSeleccion;
 }
@@ -4605,6 +4605,22 @@ function cargaInterstitialAd (){
 	}
 }
 
+function recargarPantalla (){
+	switch ( location.pathname ){
+		case PAGINA_OCUPABILIDAD : actualizaOcupabilidad2(); break;
+		case PAGINA_HORARIOS     : actualizaHorarios();      break;
+		default                  : recargaPagina();          break;
+	}
+}
+
+function actualizaHorarios (){
+	document.getElementById( ID_CONTROL_PERIODOS ).onchange();
+}
+
+function recargaPagina (){
+	location.reload();
+}
+
 var IDENTIFICACION_USUARIO  = 'usuario';
 var IDENTIFICACION_PASSWORD = 'password';
 
@@ -4749,6 +4765,7 @@ var ID_CONTROL_PLAN_ESTUDIOS        = 'ctl00_mainCopy_dpdplan';
 var ID_CONTENEDOR_ELEMENTO          = 'ctl00_mainCopy_div';
 var ID_CONTROL_EVALUACION_TUTORES   = 'ctl00_mainCopy_Pnl_Evaluacion';
 var ID_CONTROL_CUESTIONARIO_TUTORES = 'ctl00_mainCopy_Pnl_Cuestionario';
+var ID_CONTROL_PERIODOS             = 'ctl00_mainCopy_Filtro_lsNoPeriodos';
 
 var ID_CONTENEDOR_CENTRAL   = 'contentwrapper';
 var ID_ACCESOS_RAPIDOS      = 'rightcolumn';
@@ -4914,10 +4931,34 @@ var VERSION_KITKAT = 19;
 function iniciar (){
 	try {
 
+		// imprimeContenidoInicialPagina();
+		// comunicaCargado();
+
 		ajustarDisenio();
 		detectaPantalla();
 		controlaAccesosApp();
 		detectaSesion();
+
+	} catch ( error ){
+		log( '@' + error );
+	}
+}
+
+// function imprimeContenidoInicialPagina (){
+// 	try {
+
+// 		var contenidoPagina = document.getElementsByTagName('html')[0].innerHTML;
+// 		if ( androidJs ) androidJs.imprimeMensaje( contenidoPagina );
+
+// 	} catch ( error ){
+// 		log( '@' + error );
+// 	}
+// }
+
+function comunicaCargado (){
+	try {
+
+		if ( androidJs ) androidJs.paginaCargada();
 
 	} catch ( error ){
 		log( '@' + error );

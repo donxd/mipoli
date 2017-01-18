@@ -1,6 +1,9 @@
 package com.example.pruebas.interfaz2;
 
+import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,8 +39,8 @@ import java.io.InputStream;
 public class PrimeraSeccion extends Fragment {
 
 	private View vista = null;
+	private WebView pagina = null;
 
-	private WebView pagina;
 	private Context context;
 	private Spinner controlListaPlanteles;
 	private Spinner controlListaAccesos;
@@ -48,13 +51,12 @@ public class PrimeraSeccion extends Fragment {
 	private String paginaCarga;
 
 	private static boolean paginaConfigurada = false;
-	private boolean paginaCargada = true;
+	private boolean paginaCargada = false;
 
 	private final String marcaLog = "InfoEx";
 	private final String rutaScript = "js/core.js";
-	// private JavaJs javaJs = new JavaJs();
+
 	private JavaJs javaJs = JavaJs.getInstancia();
-	//private boolean inyeccionRealizada = false;
 
 	private FloatingActionButton botonFlotante;
 	private int opcionNavegacion = 0;
@@ -65,6 +67,10 @@ public class PrimeraSeccion extends Fragment {
 
 	private String ultimaPagina = "";
 	private PestaniasFragment pestanias;
+
+	private TextView mensajesPagina = null;
+	private AlertDialog.Builder constructorAlertas = null;
+	private AlertDialog mensajeAlerta = null;
 
 	@Nullable
 	@Override
@@ -105,123 +111,48 @@ public class PrimeraSeccion extends Fragment {
 
 	public void cargaPaginaSaes (){
 
+		configuraControlPagina();
 		cargaPreferencias();
+		// configuraControlFlotante();
 
-		final String paginaCargar = getPaginaCargar();
+		String paginaCargar = getPaginaCargarPreferencia();
+		configuraConexionJs();
 
-		//WebView.setWebContentsDebuggingEnabled( true );
+		paginaCargada = false;
+		pagina.loadUrl( paginaCargar );
+		pestanias.fijaPlantelSeleccionado();
+		// Log.i( "Info", "Seguimiento - cargaPaginaSaes", new Exception() );
+		// ( ( MainActivity ) pestanias.getActivity() ).setCargandoSaes();
+	}
 
-		pagina = (WebView) vista.findViewById(R.id.nav_web);
-		pagina.getSettings().setDomStorageEnabled( true );
-		//pagina.getSettings().setBuiltInZoomControls( true );
-		pagina.getSettings().setJavaScriptEnabled( true );
-		pagina.getSettings().setPluginState( WebSettings.PluginState.ON );
-		pagina.getSettings().setDatabasePath( context.getDir( "database", Context.MODE_PRIVATE ).getPath() );
-		// pagina.getSettings().setSaveFormData(false);
-		pagina.getSettings().setDatabaseEnabled( true );
-		pagina.getSettings().setSupportZoom( true );
-        pagina.clearFormData();
-		configuraZoom( pagina );
-		pagina.setWebViewClient( new WebViewClient() {
+	private void configuraControlPagina (){
+		if ( pagina == null ){
+			//WebView.setWebContentsDebuggingEnabled( true );
+			pagina = (WebView) vista.findViewById(R.id.nav_web);
+			pagina.getSettings().setDomStorageEnabled( true );
+			pagina.getSettings().setBuiltInZoomControls( true );
+			pagina.getSettings().setJavaScriptEnabled( true );
+			pagina.getSettings().setPluginState( WebSettings.PluginState.ON );
+			pagina.getSettings().setDatabasePath( context.getDir( "database", Context.MODE_PRIVATE ).getPath() );
+			// pagina.getSettings().setSaveFormData(false);
+			pagina.getSettings().setDatabaseEnabled( true );
+			pagina.getSettings().setSupportZoom( true );
+			//pagina.clearFormData();
+			pagina.setWebViewClient( getComportamientoPagina() );
 
-			@Override
-			public void onPageFinished ( WebView webview, String url ){
+			// configuraTeclado();
+			configuraZoom();
+			// configuraRedimensionamiento();
+		}
+	}
 
-				if ( paginaCargada && pagina.getVisibility() == View.GONE ){
-					pagina.setVisibility( View.VISIBLE );
-				}
-
-				if ( android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.KITKAT_WATCH && ultimoZoom > 0.01 ){
-					webview.zoomBy( ultimoZoom );
-					// Log.i( marcaLog, "zoom e : " + ultimoZoom );
-				} else {
-					// Log.i( marcaLog, "zoom ant : " + zoomAnterior );
-					// Log.i( marcaLog, "zoom 3 : " + pagina.getScale() );
-					if ( zoomAnterior != pagina.getScale() ){
-						zoomAnterior = (int) ( pagina.getScale() * 100 );
-						// Log.i( marcaLog, "zoom f : " + zoomAnterior );
-						pagina.setInitialScale( zoomAnterior );
-					}
-
-				}
-
-
-				if ( url.contains( "/PDF/" ) ){
-					setOpcionNavegacion( 1 );
-				} else {
-					setOpcionNavegacion( 0 );
-
-					inyectaJs( webview );
-					javaJs.getContenido();
-					CookieSyncManager.getInstance().sync();
-				}
-
-				detectaSeccionSaes( url );
-				guardarNavegacion( url );
-
-				super.onPageFinished( webview, url );
-			}
-
-			@Override
-			public void onScaleChanged( WebView vista, float viejaEscala, float nuevaEscala ){
-				// Log.i( marcaLog, "zoom escala : " + viejaEscala +" -> "+ nuevaEscala );
-				if ( viejaEscala != nuevaEscala ){
-					viejaEscala = nuevaEscala;
-				}
-
-				super.onScaleChanged( vista, viejaEscala, nuevaEscala );
-			}
-
-			@Override
-			public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-				paginaCargada = false;
-				TextView textView = (TextView) vista.findViewById(R.id.mensaje_pagina);
-				textView.setText( "No hay internet" );
-				textView.setVisibility(View.VISIBLE);
-
-					/*
-					WebView webView = (WebView) vista.findViewById( R.id.nav_web );
-					webView.setVisibility( View.GONE );
-					*/
-				pagina.setVisibility(View.GONE);
-			}
-
-		});
-
-
-		pagina.setOnTouchListener( new View.OnTouchListener(){
-			@Override
-			public boolean onTouch(View v, MotionEvent event ){
-
-				switch (event.getAction()) {
-					case MotionEvent.ACTION_DOWN:
-					case MotionEvent.ACTION_UP:
-						/*
-						if ( !v.hasFocus() ){
-							v.requestFocus();
-						}
-						*/
-						//if (!v.requestFocus()) {
-						if ( !v.hasFocus() ){
-							v.requestFocus();
-							InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-							imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
-
-						}
-
-						break;
-				}
-
-				return false;
-			}
-
-		});
-
+	private void configuraConexionJs (){
 		javaJs.setPrimeraSeccion( (PrimeraSeccion) this );
 		javaJs.setPagina( pagina );
 		pagina.addJavascriptInterface( javaJs, "androidJs" );
+	}
 
-
+	// private void configuraRedimensionamiento (){
 		/*scaleGestureDetector = new ScaleGestureDetector( pagina.getContext(), new ScaleGestureDetector.SimpleOnScaleGestureListener(){
 			@Override
 			public boolean onScale ( ScaleGestureDetector detector ){
@@ -241,30 +172,217 @@ public class PrimeraSeccion extends Fragment {
 				return true;
 			}* /
 		});*/
+	// }
 
-		pagina.loadUrl( paginaCargar );
+	// private void configuraControlFlotante (){
+		// botonFlotante = (FloatingActionButton) vista.findViewById( R.id.fab );
+		// botonFlotante.setImageDrawable( ContextCompat.getDrawable( getContext(), R.drawable.stat_notify_sync_noanim ) );
+		// botonFlotante.setOnClickListener( new View.OnClickListener() {
+		// 	@Override
+		// 	public void onClick( View view ){
 
-		botonFlotante = (FloatingActionButton) vista.findViewById( R.id.fab );
-		botonFlotante.setImageDrawable( ContextCompat.getDrawable( getContext(), R.drawable.stat_notify_sync_noanim ) );
-		botonFlotante.setOnClickListener( new View.OnClickListener() {
+		// 		if ( opcionNavegacion == 0 ){
+		// 			pagina.reload();
+		// 		}
+
+		// 		if ( opcionNavegacion == 1 ){
+		// 			pagina.goBack();
+		// 		}
+
+		// 		// Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+		// 			//	.setAction("Action", null).show();
+		// 	}
+		// });
+	// }
+
+	private WebViewClient getComportamientoPagina (){
+
+		return new WebViewClient() {
+
 			@Override
-			public void onClick( View view ){
-
-				if ( opcionNavegacion == 0 ){
-					pagina.reload();
-				}
-
-				if ( opcionNavegacion == 1 ){
-					pagina.goBack();
-				}
-
-				// Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-					//	.setAction("Action", null).show();
+			public void onPageFinished ( WebView webview, String url ){
+				super.onPageFinished( webview, url );
+				paginaCargada = true;
+				// ( ( MainActivity ) pestanias.getActivity() ).setSaesCargado();
+				controlaPaginaCargada( webview, url );
+				// Log.i( "Info", "SAES { url : '"+ url +"' }" );
 			}
-		});
+
+			@Override
+			public void onScaleChanged ( WebView vista, float viejaEscala, float nuevaEscala ){
+				super.onScaleChanged( vista, viejaEscala, nuevaEscala );
+				controlaEscalamientoPagina( vista, viejaEscala, nuevaEscala );
+			}
+
+			@Override
+			public void onReceivedError ( WebView view, int errorCode, String description, String failingUrl ){
+				controlaErrorPagina( view, errorCode, description, failingUrl );
+			}
+
+		};
 	}
 
-	private void configuraZoom ( WebView pagina ){
+	private void controlaPaginaCargada ( WebView webview, String url ){
+		if ( paginaCargada && paginaEsVisible() ){
+			muestraPagina();
+		}
+		controlaZoomPagina();
+		controlaContenidoPagina( webview, url );
+		detectaSeccionSaes( url );
+		//guardarNavegacion( url );
+	}
+
+	// private void controlaContenidoPagina (){
+	// 	if ( url.contains( "/PDF/" ) ){
+	// 		// setOpcionNavegacion( 1 );
+	// 	} else {
+	// 		// setOpcionNavegacion( 0 );
+
+	// 		inyectaJs( webview );
+	// 		javaJs.getContenido();
+	// 		CookieSyncManager.getInstance().sync();
+	// 	}
+	// }
+
+	private void controlaContenidoPagina ( WebView webview, String url ){
+		if ( !paginaContienePDF( url ) ){
+			inyectaJs( webview );
+			javaJs.getContenido();
+			CookieSyncManager.getInstance().sync();
+		}
+	}
+
+	private boolean paginaContienePDF ( String url ){
+		return url.contains( "/PDF/" );
+	}
+
+	private boolean paginaEsVisible (){
+		return pagina.getVisibility() == View.GONE;
+	}
+
+	private void muestraPagina (){
+		pagina.setVisibility( View.VISIBLE );
+	}
+
+	@SuppressWarnings( "deprecation" )
+	private void controlaZoomPagina (){
+		if ( esAndroidSuperiorKitkat() && ultimoZoom > 0.01 ){
+			controlZoomActual();
+		} else {
+			controlZoomAnterior();
+		}
+	}
+
+	private boolean esAndroidSuperiorKitkat (){
+		return android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.KITKAT_WATCH;
+	}
+
+	@TargetApi(21)
+	private void controlZoomActual (){
+		pagina.zoomBy( ultimoZoom );
+		// Log.i( marcaLog, "zoom e : " + ultimoZoom );
+	}
+
+	private void controlZoomAnterior (){
+		// Log.i( marcaLog, "zoom ant : " + zoomAnterior );
+		// Log.i( marcaLog, "zoom 3 : " + pagina.getScale() );
+		if ( zoomAnterior != pagina.getScale() ){
+			zoomAnterior = (int) ( pagina.getScale() * 100 );
+			// Log.i( marcaLog, "zoom f : " + zoomAnterior );
+			pagina.setInitialScale( zoomAnterior );
+		}
+	}
+
+	private void controlaErrorPagina ( WebView view, int errorCode, String description, String failingUrl ){
+		paginaCargada = false;
+		( ( MainActivity ) pestanias.getActivity() ).resetearListadoCargado( "error ps" );
+		ocultaControlPagina( view );
+		if ( noHayAlertasActivas() ){
+			muestraMensajeErrorPagina( errorCode );
+			indicarMostrandoAlerta();
+		}
+	}
+
+	private boolean noHayAlertasActivas (){
+		return !( ( MainActivity ) pestanias.getActivity() ).getMostrandoAlerta();
+	}
+
+	private void indicarMostrandoAlerta(){
+		( ( MainActivity ) pestanias.getActivity() ).setMostrandoAlerta( true );
+	}
+
+	private void muestraMensajeErrorPagina ( int codigoError ){
+		String mensajeError = getMensajeErrorPagina( codigoError );
+		// agregaMensajeError( mensajeError );
+		// muestraMensajesPagina();
+		presentaMensajeError( mensajeError );
+	}
+
+	// private void agregaMensajeError ( String mensajeError ){
+	// 	if ( mensajesPagina == null ){
+	// 		mensajesPagina = (TextView) vista.findViewById( R.id.mensaje_pagina );
+	// 	}
+
+	// 	mensajesPagina.setText( mensajeError );
+	// }
+
+	// private void muestraMensajesPagina (){
+	// 	mensajesPagina.setVisibility( View.VISIBLE );
+	// }
+
+	private void presentaMensajeError ( String mensajeError ){
+		if ( mensajeAlerta == null ){
+			creaContenedorMensajesAlerta();
+		}
+
+		constructorAlertas.setMessage( mensajeError );
+		mensajeAlerta = constructorAlertas.create();
+		mensajeAlerta.show();
+	}
+
+	private void creaContenedorMensajesAlerta (){
+		constructorAlertas = new AlertDialog.Builder( context );
+
+		constructorAlertas
+			.setTitle( "Error" )
+			.setCancelable( false )
+			.setPositiveButton( "OK", getComportamientoOkMensajeError() );
+	}
+
+	private DialogInterface.OnClickListener getComportamientoOkMensajeError (){
+		return new DialogInterface.OnClickListener(){
+			public void onClick ( DialogInterface dialog, int id ){
+				dialog.cancel();
+				( ( MainActivity ) pestanias.getActivity() ).setMostrandoAlerta( false );
+			}
+		};
+	}
+
+	private String getMensajeErrorPagina ( int codigoError ){
+		switch ( codigoError ){
+			case WebViewClient.ERROR_CONNECT        : return "Hubo un error en la conexión de la página.";
+			case WebViewClient.ERROR_TIMEOUT        : return "La página del plantel está tardando mucho en responder.";
+			case WebViewClient.ERROR_FILE_NOT_FOUND : return "La página solicitada no ha sido encontrada [404].";
+			default                                 : return "Hubo un error al conectar con la página.";
+		}
+	}
+
+	private void ocultaControlPagina (){
+		pagina.setVisibility( View.GONE );
+	}
+
+	private void ocultaControlPagina ( WebView pagina ){
+		pagina.setVisibility( View.GONE );
+	}
+
+	private void controlaEscalamientoPagina ( WebView vista, float viejaEscala, float nuevaEscala ){
+		// Log.i( marcaLog, "zoom escala : " + viejaEscala +" -> "+ nuevaEscala );
+		if ( viejaEscala != nuevaEscala ){
+			viejaEscala = nuevaEscala;
+		}
+	}
+
+	private void configuraZoom (){
 		pagina.getSettings().setLoadWithOverviewMode( true );
 		pagina.getSettings().setUseWideViewPort( true );
 	}
@@ -293,9 +411,13 @@ public class PrimeraSeccion extends Fragment {
 		this.context = context;
 	}
 
+	private String getPaginaCargarPreferencia (){
+		return getPaginaCargar();
+	}
+
 	private String getPaginaCargar (){
 		// cargaPreferencias();
-		String plantel = preferencias.getString("plantel", "");
+		String plantel = preferencias.getString( "plantel", "" );
 		if ( plantel.length() == 0 ) {
 			plantel = controlListaPlanteles.getSelectedItem().toString();
 		}
@@ -308,11 +430,26 @@ public class PrimeraSeccion extends Fragment {
 	}
 
 	public void redirigePlantel (){
-		String paginaCargar = getPaginaCargar();
-		// if ( pagina == null ){
-		// 	pagina = (WebView) vista.findViewById(R.id.nav_web);
-		// }
-		pagina.loadUrl( paginaCargar );
+		if ( pagina != null ){
+
+			if ( paginaCargando() ){
+				detenerCargado();
+			}
+
+			String paginaCargar = getPaginaCargar();
+
+			pagina.loadUrl( paginaCargar );
+			paginaCargada = false;
+			// Log.i( "Info", "Seguimiento - redirigePlantel", new Exception() );
+		}
+	}
+
+	private boolean paginaCargando (){
+		return !paginaCargada;
+	}
+
+	private void detenerCargado (){
+		pagina.stopLoading();
 	}
 
 	public void redirigeAcceso ( Spinner listaAccesos ){
@@ -323,6 +460,7 @@ public class PrimeraSeccion extends Fragment {
 			ultimaPagina = paginaCargar;
 			Log.i( marcaLog, " url-pagina : guardada " );
 			pagina.loadUrl( paginaCargar );
+			// Log.i( "Info", "Seguimiento - redirigeAcceso", new Exception() );
 		}
 	}
 
@@ -367,6 +505,7 @@ public class PrimeraSeccion extends Fragment {
 		if ( contenidoScript.length() > 0 ){
 
 			cadena.append( "javascript:(function(){" );
+			// cadena.append( "var contenidoPagina=document.getElementsByTagName('html')[0].innerHTML;" );
 			cadena.append( "var script=document.createElement('script');" );
 			cadena.append( "script.type='text/javascript';" );
 			cadena.append( "script.innerHTML=decodeURIComponent(escape(window.atob('" );
@@ -408,36 +547,36 @@ public class PrimeraSeccion extends Fragment {
 		return "";
 	}
 
-	public void setOpcionNavegacion ( int opcion ){
-		if ( opcionNavegacion != opcion ){
+	// public void setOpcionNavegacion ( int opcion ){
+	// 	if ( opcionNavegacion != opcion ){
 
-			switch ( opcion ){
-				case 0:
-					presentaIconoRecargar();
-					break;
-				case 1:
-					presentaIconoRegresar();
-					break;
-			}
+	// 		switch ( opcion ){
+	// 			case 0:
+	// 				presentaIconoRecargar();
+	// 				break;
+	// 			case 1:
+	// 				presentaIconoRegresar();
+	// 				break;
+	// 		}
 
-			opcionNavegacion = opcion;
+	// 		opcionNavegacion = opcion;
 
-		}
-	}
+	// 	}
+	// }
 
 	public int getOpcionNavegacion (){
 		return opcionNavegacion;
 	}
 
-	private void presentaIconoRecargar (){
-		botonFlotante = (FloatingActionButton) vista.findViewById( R.id.fab );
-		botonFlotante.setImageDrawable( ContextCompat.getDrawable( getContext(), R.drawable.stat_notify_sync_noanim ) );
-	}
+	// private void presentaIconoRecargar (){
+	// 	botonFlotante = (FloatingActionButton) vista.findViewById( R.id.fab );
+	// 	botonFlotante.setImageDrawable( ContextCompat.getDrawable( getContext(), R.drawable.stat_notify_sync_noanim ) );
+	// }
 
-	private void presentaIconoRegresar (){
-		botonFlotante = (FloatingActionButton) vista.findViewById( R.id.fab );
-		botonFlotante.setImageDrawable( ContextCompat.getDrawable( getContext(), R.drawable.ic_media_rew ) );
-	}
+	// private void presentaIconoRegresar (){
+	// 	botonFlotante = (FloatingActionButton) vista.findViewById( R.id.fab );
+	// 	botonFlotante.setImageDrawable( ContextCompat.getDrawable( getContext(), R.drawable.ic_media_rew ) );
+	// }
 
 	public void detectaSeccionSaes ( String url ){
 		// String direccionSaes = pagina.getUrl();
@@ -449,18 +588,18 @@ public class PrimeraSeccion extends Fragment {
 		// if ( OpcionesAccesos.tieneSeccion( seccionSaes ) ){
 		// 	marcarSeccionSaes( seccionSaes );
 		// }
-		guardarNavegacion( direccionSaes );
+		// guardarNavegacion( direccionSaes );
 	}
 
-	private void guardarNavegacion ( String paginaCargada ){
-		if ( !paginaCargada.equals( getPaginaCargar() ) && 
-				!ultimaPagina.equals( paginaCargada ) ){
+	// private void guardarNavegacion ( String paginaCargada ){
+	// 	if ( !paginaCargada.equals( getPaginaCargar() ) && 
+	// 			!ultimaPagina.equals( paginaCargada ) ){
 
-			ultimaPagina = paginaCargada;
-			Log.i( marcaLog, " url-pagina : guardada " );
-			//pagina.loadUrl( paginaCargada );
-		}
-	}
+	// 		ultimaPagina = paginaCargada;
+	// 		Log.i( marcaLog, " url-pagina : guardada " );
+	// 		//pagina.loadUrl( paginaCargada );
+	// 	}
+	// }
 
 	private String getRutaPagina ( String url, String dominio ){
 
@@ -491,6 +630,10 @@ public class PrimeraSeccion extends Fragment {
 
 	public WebView getControlSaes (){
 		return pagina;
+	}
+
+	public boolean esPaginaCargada (){
+		return paginaCargada;
 	}
 
 }

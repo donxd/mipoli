@@ -127,6 +127,7 @@ public class SegundaSeccion extends Fragment {
 	}
 
 	public void redirigePlantelReferencias (){
+		pagina.stopLoading();
 		String paginaCargar = getPaginaCargar();
 		pagina.loadUrl( paginaCargar );
 	}

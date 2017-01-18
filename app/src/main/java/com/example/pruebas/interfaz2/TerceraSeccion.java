@@ -1,6 +1,8 @@
 package com.example.pruebas.interfaz2;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,12 +29,13 @@ import java.io.InputStream;
 public class TerceraSeccion extends Fragment {
 
 	private View vista = null;
-	private WebView pagina;
+	private WebView pagina = null;
 	private Context context;
 
 	private Spinner controlListaAccesos;
 	private Spinner controlListaPlanteles;
 	private SharedPreferences preferencias;
+	private PestaniasFragment pestanias;
 
 	private final String marcaLog = "InfoEx";
 	private final String rutaScript = "js/core.js";
@@ -45,6 +48,10 @@ public class TerceraSeccion extends Fragment {
 	private int zoomAnterior = 0;
 
 	private JavaJs javaJs = JavaJs.getInstancia();
+
+	private TextView mensajesPagina = null;
+	private AlertDialog.Builder constructorAlertas = null;
+	private AlertDialog mensajeAlerta = null;
 
 	@Nullable
 	@Override
@@ -61,8 +68,6 @@ public class TerceraSeccion extends Fragment {
 	public void onViewCreated ( View view, Bundle savedInstanceState ){
 		vista = view;
 		vista.setTag( "s3" );
-
-		pagina = (WebView) vista.findViewById( R.id.webLugares );
 
 		if ( !paginaConfigurada ){
 			cargaPaginaLugares();
@@ -91,46 +96,51 @@ public class TerceraSeccion extends Fragment {
 
 	public String getPaginaAcceso ( String acceso ){
 		return String.format(
-				"%s%s"
-				, getPaginaCargar()
-				, OpcionesAccesos.getDireccionAcceso( acceso )
+			"%s%s"
+			, getPaginaCargar()
+			, OpcionesAccesos.getDireccionAcceso( acceso )
 		);
 	}
 
 	private void configuraPaginaLugares (){
-		pagina.getSettings().setDomStorageEnabled( true );
-		//pagina.getSettings().setBuiltInZoomControls( true );
-		pagina.getSettings().setJavaScriptEnabled( true );
-		pagina.getSettings().setPluginState( WebSettings.PluginState.ON );
-		pagina.getSettings().setDatabasePath( context.getDir("database", Context.MODE_PRIVATE).getPath() );
-		pagina.getSettings().setSaveFormData(false);
-		pagina.getSettings().setDatabaseEnabled( true );
-		pagina.getSettings().setSupportZoom( true );
-		pagina.clearFormData();
-		configuraZoom( pagina );
-		pagina.setWebViewClient( getConfiguracionPaginaLugares() );
+		if ( pagina == null ){
 
-		pagina.setOnTouchListener( new View.OnTouchListener(){
-			@Override
-			public boolean onTouch(View v, MotionEvent event ){
+			pagina = (WebView) vista.findViewById( R.id.webLugares );
+			pagina.getSettings().setDomStorageEnabled( true );
+			pagina.getSettings().setBuiltInZoomControls( true );
+			pagina.getSettings().setJavaScriptEnabled( true );
+			pagina.getSettings().setPluginState( WebSettings.PluginState.ON );
+			pagina.getSettings().setDatabasePath( context.getDir("database", Context.MODE_PRIVATE).getPath() );
+			pagina.getSettings().setSaveFormData(false);
+			pagina.getSettings().setDatabaseEnabled( true );
+			pagina.getSettings().setSupportZoom( true );
+			// pagina.clearFormData();
+			configuraZoom( pagina );
+			pagina.setWebViewClient( getConfiguracionPaginaLugares() );
 
-				switch (event.getAction()) {
-					case MotionEvent.ACTION_DOWN:
-					case MotionEvent.ACTION_UP:
-						if ( !v.hasFocus() ){
-							v.requestFocus();
-							InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-							imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
+		}
 
-						}
+		// pagina.setOnTouchListener( new View.OnTouchListener(){
+		// 	@Override
+		// 	public boolean onTouch(View v, MotionEvent event ){
 
-						break;
-				}
+		// 		switch (event.getAction()) {
+		// 			case MotionEvent.ACTION_DOWN:
+		// 			case MotionEvent.ACTION_UP:
+		// 				if ( !v.hasFocus() ){
+		// 					v.requestFocus();
+		// 					InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+		// 					imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
 
-				return false;
-			}
+		// 				}
 
-		});
+		// 				break;
+		// 		}
+
+		// 		return false;
+		// 	}
+
+		// });
 
 		javaJs.setTerceraSeccion( this );
 		javaJs.setPagina( pagina );
@@ -138,7 +148,9 @@ public class TerceraSeccion extends Fragment {
 
 		String paginaCargar =  estadoSesionCompartida ? getPaginaAcceso( OpcionesAccesos.OPCION_OCUPABILIDAD ) : getPaginaCargar();
 
+		paginaCargada = false;
 		pagina.loadUrl( paginaCargar );
+		// ( ( MainActivity ) pestanias.getActivity() ).setCargandoLugares();
 	}
 
 	private void configuraZoom ( WebView pagina ){
@@ -151,6 +163,9 @@ public class TerceraSeccion extends Fragment {
 
 			@Override
 			public void onPageFinished ( WebView webview, String url ){
+				super.onPageFinished( webview, url );
+				paginaCargada = true;
+				( ( MainActivity ) pestanias.getActivity() ).setLugaresCargado();
 
 				if ( paginaCargada && pagina.getVisibility() == View.GONE ){
 					pagina.setVisibility( View.VISIBLE );
@@ -171,7 +186,6 @@ public class TerceraSeccion extends Fragment {
 				// detectaSeccionSaes( url );
 				// guardarNavegacion( url );
 
-				super.onPageFinished( webview, url );
 			}
 
 			@Override
@@ -186,15 +200,78 @@ public class TerceraSeccion extends Fragment {
 
 			@Override
 			public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-				paginaCargada = false;
-				TextView textView = (TextView) vista.findViewById(R.id.mensaje_pagina);
-				textView.setText( "No hay internet" );
-				textView.setVisibility(View.VISIBLE);
-
-				pagina.setVisibility(View.GONE);
+				controlaErrorPagina( view, errorCode, description, failingUrl );
 			}
 
 		};
+	}
+
+	private void controlaErrorPagina ( WebView view, int errorCode, String description, String failingUrl ){
+		paginaCargada = false;
+		( ( MainActivity ) pestanias.getActivity() ).resetearListadoCargado( "error ts" );
+		ocultaControlPagina( view );
+		if ( noHayAlertasActivas() ){
+			muestraMensajeErrorPagina( errorCode );
+			indicarMostrandoAlerta();
+		}
+	}
+
+	private boolean noHayAlertasActivas (){
+		return !( ( MainActivity ) pestanias.getActivity() ).getMostrandoAlerta();
+	}
+
+	private void muestraMensajeErrorPagina ( int codigoError ){
+		String mensajeError = getMensajeErrorPagina( codigoError );
+		presentaMensajeError( mensajeError );
+	}
+
+	private void indicarMostrandoAlerta(){
+		( ( MainActivity ) pestanias.getActivity() ).setMostrandoAlerta( true );
+	}
+
+	private void ocultaControlPagina (){
+		pagina.setVisibility( View.GONE );
+	}
+
+	private void ocultaControlPagina ( WebView pagina ){
+		pagina.setVisibility( View.GONE );
+	}
+
+	private void presentaMensajeError ( String mensajeError ){
+		if ( mensajeAlerta == null ){
+			creaContenedorMensajesAlerta();
+		}
+
+		constructorAlertas.setMessage( mensajeError );
+		mensajeAlerta = constructorAlertas.create();
+		mensajeAlerta.show();
+	}
+
+	private void creaContenedorMensajesAlerta (){
+		constructorAlertas = new AlertDialog.Builder( context );
+
+		constructorAlertas
+			.setTitle( "Error" )
+			.setCancelable( false )
+			.setPositiveButton( "OK", getComportamientoOkMensajeError() );
+	}
+
+	private DialogInterface.OnClickListener getComportamientoOkMensajeError (){
+		return new DialogInterface.OnClickListener(){
+			public void onClick ( DialogInterface dialog, int id ){
+				dialog.cancel();
+				( ( MainActivity ) pestanias.getActivity() ).setMostrandoAlerta( false );
+			}
+		};
+	}
+
+	private String getMensajeErrorPagina ( int codigoError ){
+		switch ( codigoError ){
+			case WebViewClient.ERROR_CONNECT        : return "Hubo un error en la conexión de la página.";
+			case WebViewClient.ERROR_TIMEOUT        : return "La página del plantel está tardando mucho en responder.";
+			case WebViewClient.ERROR_FILE_NOT_FOUND : return "La página solicitada no ha sido encontrada [404].";
+			default                                 : return "Hubo un error al conectar con la página.";
+		}
 	}
 
 	private void controlaZoomPagina ( WebView webview ){
@@ -337,5 +414,25 @@ public class TerceraSeccion extends Fragment {
 
 	public void setEstadoSesionCompartida ( boolean estadoSesionCompartida ){
 		this.estadoSesionCompartida = estadoSesionCompartida;
+	}
+
+	public boolean esPaginaCargada (){
+		return paginaCargada;
+	}
+
+	public void setPestanias ( PestaniasFragment pestanias ){
+		this.pestanias = pestanias;
+		javaJs.setPestanias( pestanias );
+	}
+
+	public void redirigePlantel (){
+		if ( pagina != null ){
+			pagina.stopLoading();
+			String paginaCargar =  estadoSesionCompartida ? getPaginaAcceso( OpcionesAccesos.OPCION_OCUPABILIDAD ) : getPaginaCargar();
+			// if ( pagina == null ){
+			// 	pagina = (WebView) vista.findViewById(R.id.nav_web);
+			// }
+			pagina.loadUrl( paginaCargar );
+		}
 	}
 }

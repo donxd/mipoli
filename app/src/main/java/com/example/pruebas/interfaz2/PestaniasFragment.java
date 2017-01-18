@@ -26,7 +26,6 @@ public class PestaniasFragment extends Fragment {
 
 	public static TabLayout tabLayout;
 	public static ViewPager viewPager;
-	public static int numero_secciones = 3;
 
 	private final PrimeraSeccion seccion1 = new PrimeraSeccion();
 	private final SegundaSeccion seccion2 = new SegundaSeccion();
@@ -44,6 +43,14 @@ public class PestaniasFragment extends Fragment {
 
 	private boolean seccionesCreadas = false;
 	private static Integer contador = 0;
+	public static final int NUMERO_SECCIONES = 3;
+
+	private static final int PESTANIA_SAES        = 0;
+	private static final int PESTANIA_REFERENCIAS = 1;
+	private static final int PESTANIA_LUGARES     = 2;
+
+	private String plantelSeleccionado = null;
+	private String plantelActivo = null;
 
 	@Nullable
 	@Override
@@ -68,6 +75,7 @@ public class PestaniasFragment extends Fragment {
 		});
 
 		seccion1.setPestanias( this );
+		seccion3.setPestanias( this );
 
 		return x;
 	}
@@ -90,10 +98,19 @@ public class PestaniasFragment extends Fragment {
 	}
 
 	private void aplicaPreferenciaPlantel () {
-		String plantel = preferencias.getString( "plantel", "" );
+		String plantel = getPreferenciaPlantel();
 		if ( plantel.length() > 0 ) {
-			listaPlanteles.setSelection( opcionesPlantel.getIndiceOpcionPlantel( plantel ) );
+			seleccionaPreferenciaPlantel( plantel );
 		}
+		fijaPlantelSeleccionado();
+	}
+
+	private String getPreferenciaPlantel (){
+		return preferencias.getString( "plantel", "" );
+	}
+
+	private void seleccionaPreferenciaPlantel ( String plantel ){
+		listaPlanteles.setSelection( opcionesPlantel.getIndiceOpcionPlantel( plantel ) );
 	}
 
 	public void configuraBarraHerramientas ( Spinner listaHerramientas ){
@@ -143,9 +160,18 @@ public class PestaniasFragment extends Fragment {
 		return new AdapterView.OnItemSelectedListener (){
 			@Override
 			public void onItemSelected( AdapterView<?> adapterView, View view, int i, long l ){
-				guardaPreferenciaPlantel();
-				//verificaContexto();
-				redirigePlantelPreferencia();
+
+				if ( plantelActivo != getPlantelSeleccionado() ){
+					//verificaContexto();
+					// ( ( MainActivity ) getActivity() ).resetearListadoCargado( "Redireccion" );
+					plantelActivo = getPlantelSeleccionado();
+
+					plantelSeleccionado = plantelActivo;
+					guardaPreferenciaPlantel();
+
+					redirigePlantelPreferencia();
+				}
+
 			}
 
 			@Override
@@ -154,15 +180,33 @@ public class PestaniasFragment extends Fragment {
 		};
 	}
 
+	private String getPlantelPreferencia (){
+		String plantel = preferencias.getString( "plantel", "" );
+		if ( plantel.length() == 0 ) {
+			plantel = getPlantelInicial();
+		}
+
+		return plantel;
+	}
+
 	private void guardaPreferenciaPlantel (){
 		SharedPreferences.Editor editorPreferencias = getEditorPreferencias();
-		editorPreferencias.putString( "plantel", listaPlanteles.getSelectedItem().toString() );
+		editorPreferencias.putString( "plantel", plantelSeleccionado );
 		editorPreferencias.commit();
+	}
+
+	private String getPlantelSeleccionado (){
+		return listaPlanteles.getSelectedItem().toString();
+	}
+
+	private String getPlantelInicial (){
+		return getPlantelSeleccionado();
 	}
 
 	private void redirigePlantelPreferencia (){
 		seccion1.redirigePlantel();
 		seccion2.redirigePlantelReferencias();
+		seccion3.redirigePlantel();
 	}
 
 	private AdapterView.OnItemSelectedListener getEventoSeleccionAcceso (){
@@ -197,17 +241,17 @@ public class PestaniasFragment extends Fragment {
 			@Override
 			public void onPageSelected(int position) {
 				switch ( position ){
-					case 0:
-						controlaPrimeraSeccion();
+					case PESTANIA_SAES :
 						muestraPlanteles();
 						muestraAccesos();
+						controlaPrimeraSeccion();
 						break;
-					case 1:
+					case PESTANIA_REFERENCIAS :
 						muestraPlanteles();
 						ocultaAccesos();
 						seccion2.revisaConexionInternet();
 						break;
-					case 2:
+					case PESTANIA_LUGARES :
 						muestraPlanteles();
 						ocultaAccesos();
 						break;
@@ -309,9 +353,9 @@ public class PestaniasFragment extends Fragment {
 			*/
 
 			switch ( position ){
-				case 0  : return seccion1;
-				case 1  : return seccion2;
-				case 2  : return seccion3;
+				case PESTANIA_SAES        : return seccion1;
+				case PESTANIA_REFERENCIAS : return seccion2;
+				case PESTANIA_LUGARES     : return seccion3;
 				default : return null;
 			}
 
@@ -319,15 +363,15 @@ public class PestaniasFragment extends Fragment {
 
 		@Override
 		public int getCount (){
-			return numero_secciones;
+			return NUMERO_SECCIONES;
 		}
 
 		@Override
 		public CharSequence getPageTitle ( int position ){
 			switch ( position ){
-				case 0: return "SAES";
-				case 1: return "Referencias";
-				case 2: return "Lugares";
+				case PESTANIA_SAES        : return "SAES";
+				case PESTANIA_REFERENCIAS : return "Referencias";
+				case PESTANIA_LUGARES     : return "Lugares";
 			}
 
 			return null;
@@ -375,5 +419,9 @@ public class PestaniasFragment extends Fragment {
 		imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
 	}
 	*/
+
+	public void fijaPlantelSeleccionado (){
+		plantelActivo = getPlantelSeleccionado();
+	}
 
 }

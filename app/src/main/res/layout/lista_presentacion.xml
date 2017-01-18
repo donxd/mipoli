@@ -4,6 +4,8 @@
     android:layout_height="wrap_content"
     android:maxLines="1"
     android:textColor="#FFF"
-    android:padding="10dp"
+    android:paddingBottom="15dp"
+    android:paddingLeft="5dp"
+    android:paddingTop="10dp"
     android:ellipsize="marquee">
 </TextView>

@@ -13,6 +13,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
+import android.util.StringBuilderPrinter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -26,7 +27,9 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
@@ -38,12 +41,19 @@ import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+
 public class MainActivity extends AppCompatActivity {
 		// implements NavigationView.OnNavigationItemSelectedListener {
 
 	private DrawerLayout drawer;
 	private FragmentManager fragmentManager;
 	private FragmentTransaction fragmentTransaction;
+	//private DrawerLayout contenidoPublicidad;
+	//private RelativeLayout contenidoPublicidad;
 
 	private Spinner controlPlanteles;
 	private Spinner controlAccesos;
@@ -59,6 +69,16 @@ public class MainActivity extends AppCompatActivity {
 	private Context contexto;
 	private AdView adView;
 	private InterstitialAd mInterstitialAd;
+	private boolean anuncioCargado = false;
+
+	private static final int PESTANIA_SAES        = 0;
+	private static final int PESTANIA_REFERENCIAS = 1;
+	private static final int PESTANIA_LUGARES     = 2;
+
+	private List<Integer> listaPaginaCargando = new ArrayList<Integer>();
+	private List<Integer> listaPaginaCargada = new ArrayList<Integer>();
+	private static final long TIEMPO_DEMORA_CARGADO = 6000;
+	private boolean mostrandoAlerta = false;
 
 	@Override
 	protected void onCreate( Bundle savedInstanceState ) {
@@ -70,6 +90,8 @@ public class MainActivity extends AppCompatActivity {
 
 		ajustaBarraHerramientas();
 
+		//contenidoPublicidad = (RelativeLayout) findViewById( R.id.contenedor_publicidad );
+		//contenidoPublicidad = (DrawerLayout) findViewById( R.id.contenedor_publicidad );
 		drawer = (DrawerLayout) findViewById( R.id.drawer_layout );
 		NavigationView navigationView = (NavigationView) findViewById( R.id.nav_view );
 
@@ -78,10 +100,10 @@ public class MainActivity extends AppCompatActivity {
 
 		// inicializaControlPlanteles();
 		adView = newAdView();
-		cargaAdview();
+		// cargaAdview();
 
 		mInterstitialAd = newInterstitialAd();
-		cargaInterstitialAd();
+		//cargaInterstitialAd();
 
 		fragmentManager = getSupportFragmentManager();
 		configuraContenedorPestanias();
@@ -174,14 +196,22 @@ public class MainActivity extends AppCompatActivity {
 						break;
 				}
 
-				return false;
+				return true;
 			}
 		};
 	}
 
 	private void cargaAdview (){
-		AdRequest adRequest = new AdRequest.Builder().setRequestAgent( "android_studio:ad_template" ).build();
-		adView.loadAd(adRequest);
+		if ( adView == null ){
+			adView = newAdView();
+		}
+
+		if ( !anuncioCargado ){
+			AdRequest adRequest = new AdRequest.Builder().setRequestAgent( "android_studio:ad_template" ).build();
+			adView.loadAd(adRequest);
+		}
+
+		muestraAdView();
 	}
 
 	private AdView newAdView (){
@@ -197,7 +227,10 @@ public class MainActivity extends AppCompatActivity {
 		adView.setAdUnitId( getResources().getString( R.string.banner_ad_unit_id ) );
 		adView.setAdListener( getControladorAd() );
 
-		drawer.addView( adView );
+		//contenidoPublicidad.addView( adView );
+		getWindow().addContentView( adView, new ViewGroup.LayoutParams( ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT ) );
+		//drawer.addc
+		//contenidoPublicidad.addView( adView );
 
 		return adView;
 	}
@@ -205,34 +238,32 @@ public class MainActivity extends AppCompatActivity {
 	private InterstitialAd newInterstitialAd() {
 		InterstitialAd interstitialAd = new InterstitialAd( contexto );
 		interstitialAd.setAdUnitId( getString( R.string.interstitial_ad_unit_id ) );
-		// interstitialAd.setAdListener( getControladorInterstitialAd() );
+		interstitialAd.setAdListener( getControladorInterstitialAd() );
+
 		return interstitialAd;
 	}
 
-	/*
+
 	private AdListener getControladorInterstitialAd (){
 		return new AdListener() {
 			@Override
 			public void onAdLoaded() {
-				mNextLevelButton.setEnabled(true);
-			}
-
-			@Override
-			public void onAdFailedToLoad(int errorCode) {
-				mNextLevelButton.setEnabled(true);
-			}
-
-			@Override
-			public void onAdClosed() {
-				// Proceed to the next level.
-				goToNextLevel();
+				mInterstitialAd.show();
 			}
 		};
-	}*/
+	}
 
 	private void cargaInterstitialAd (){
-		AdRequest adRequest = new AdRequest.Builder().setRequestAgent( "android_studio:ad_template" ).build();
-		mInterstitialAd.loadAd( adRequest );
+		if ( mInterstitialAd == null ){
+			nuevoInterstitialAd();
+		}
+
+		if ( !mInterstitialAd.isLoaded() ){
+			AdRequest adRequest = new AdRequest.Builder().setRequestAgent( "android_studio:ad_template" ).build();
+			mInterstitialAd.loadAd( adRequest );
+		}
+
+		//mInterstitialAd.show();
 	}
 
 	private AdListener getControladorAd (){
@@ -258,6 +289,16 @@ public class MainActivity extends AppCompatActivity {
 			// 	// Log.i( "anunciossss", "onAdLeftApplication !!!" );
 			// }
 
+			@Override
+			public void onAdFailedToLoad ( int errorCode ){
+				anuncioCargado = false;
+			}
+
+			@Override
+			public void onAdLoaded (){
+				anuncioCargado = true;
+			}
+
 		};
 	}
 
@@ -277,12 +318,39 @@ public class MainActivity extends AppCompatActivity {
 			public void onClick( View vista ){
 				WebView navegador = getControlPagina();
 
-				if ( navegador != null && navegador.canGoBack() ){
-					navegador.reload();
+				if ( navegador != null ){
+					recargaNavegador( navegador );
+					mostrarMensajeRecargando();
 				}
-
 			}
 		});
+	}
+
+	private void recargaNavegador ( WebView navegador ){
+		if ( pestaniasFragment.getViewPager().getCurrentItem() != PESTANIA_REFERENCIAS && getPaginaCargada() ){
+			inyectaScript( navegador, getScriptRecargar() );
+		} else {
+			navegador.reload();
+			listaPaginaCargando.clear();
+		}
+	}
+
+	private void inyectaScript ( WebView navegador, String script ){
+		if ( script != null && !script.isEmpty() ){
+			if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ){
+				navegador.evaluateJavascript( script, null );
+			} else {
+				navegador.loadUrl( "javascript:" + script );
+			}
+		}
+	}
+
+	private String getScriptRecargar (){
+		return "recargarPantalla()";
+	}
+
+	private void mostrarMensajeRecargando (){
+		Toast.makeText( contexto, "Recargando...", Toast.LENGTH_LONG ).show();
 	}
 
 	private void setControlRecargar (){
@@ -291,7 +359,6 @@ public class MainActivity extends AppCompatActivity {
 
 	private void nuevoInterstitialAd (){
 		mInterstitialAd = newInterstitialAd();
-		cargaInterstitialAd();
 	}
 
 	// private void inicializaControlPlanteles (){
@@ -498,10 +565,20 @@ public class MainActivity extends AppCompatActivity {
 		if ( pestaniasFragment == null || pestaniasFragment.getViewPager() == null ) return null;
 
 		switch ( pestaniasFragment.getViewPager().getCurrentItem() ){
-			case 0: return pestaniasFragment.getPrimeraSeccion().getControlSaes();
-			case 1: return pestaniasFragment.getSegundaSeccion().getControlReferencias();
-			case 2: return pestaniasFragment.getTerceraSeccion().getControlLugares();
+			case PESTANIA_SAES        : return pestaniasFragment.getPrimeraSeccion().getControlSaes();
+			case PESTANIA_REFERENCIAS : return pestaniasFragment.getSegundaSeccion().getControlReferencias();
+			case PESTANIA_LUGARES     : return pestaniasFragment.getTerceraSeccion().getControlLugares();
 			default: return null;
+		}
+	}
+
+	public boolean getPaginaCargada (){
+		if ( pestaniasFragment == null || pestaniasFragment.getViewPager() == null ) return false;
+
+		switch ( pestaniasFragment.getViewPager().getCurrentItem() ){
+			case PESTANIA_SAES    : return pestaniasFragment.getPrimeraSeccion().esPaginaCargada();
+			case PESTANIA_LUGARES : return pestaniasFragment.getTerceraSeccion().esPaginaCargada();
+			default: return false;
 		}
 	}
 
@@ -523,8 +600,8 @@ public class MainActivity extends AppCompatActivity {
 
 					} else {
 
-						if ( paginaLugares == null ) Log.i( "Info", "Pagina no existe" );
-						if ( paginaOcupabilidad == null ) Log.i( "Info", "Destino no existe" );
+						if ( paginaLugares == null ) Log.i( "Info", "Control - Pagina no existe" );
+						if ( paginaOcupabilidad == null ) Log.i( "Info", "Control - Destino no existe" );
 
 					}
 				}
@@ -541,8 +618,13 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	public void muestraPublicidad (){
-		muestraAdView();
-		cargaAdview();
+		runOnUiThread(new Runnable(){
+			@Override
+			public void run(){
+				cargaAdview();
+				muestraAdView();
+			}
+		});
 	}
 
 	private void muestraAdView (){
@@ -550,7 +632,88 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	public void muestraPublicidadInterstitial (){
-		nuevoInterstitialAd();
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				cargaInterstitialAd();
+			}
+		});
+	}
+
+	public void setCargandoSaes (){
+		resetearListadoCargado( "a" );
+		listaPaginaCargando.add( PESTANIA_SAES );
+		Log.i( "Info", "Cargando .... SAES " );
+		creaTemporizadorPaginaCargando();
+	}
+
+	public void setCargandoLugares (){
+		resetearListadoCargado( "b" );
+		listaPaginaCargando.add( PESTANIA_LUGARES );
+		Log.i( "Info", "Cargando .... LUGARES " );
+		creaTemporizadorPaginaCargando();
+	}
+
+	private void creaTemporizadorPaginaCargando (){
+		new android.os.Handler().postDelayed( getComportamientoCargadoLento(), TIEMPO_DEMORA_CARGADO );
+		Log.i( "Info", "Temporizador inicializado\n" );
+	}
+
+	private Runnable getComportamientoCargadoLento (){
+		return new Runnable (){
+
+			public void run (){
+				Log.i( "Info", getMensajeCargando() );
+				if ( paginasEnEsperaCargando() ){
+					Toast.makeText( contexto, "La página esta tardando demasiado en responder.", Toast.LENGTH_LONG ).show();
+					creaTemporizadorPaginaCargando();
+				}
+			}
+		};
+	}
+
+	private String getMensajeCargando (){
+		StringBuilder mensaje = new StringBuilder();
+		mensaje
+			.append( "Cargando [ " )
+			.append( listaPaginaCargando.size() )
+			.append( " ]" );
+
+		return mensaje.toString();
+	}
+
+	private boolean paginasEnEsperaCargando (){
+		return !listaPaginaCargando.isEmpty();
+	}
+
+	public void setSaesCargado (){
+		// listaPaginaCargada.add( PESTANIA_SAES );
+		Log.i( "Info", "Saes - Cargado \n" );
+		resetearListadoCargado( "c" );
+	}
+
+	public void setLugaresCargado (){
+		// listaPaginaCargada.add( PESTANIA_LUGARES );
+		Log.i( "Info", "Lugares - Cargado \n" );
+		resetearListadoCargado( "d" );
+	}
+
+	public void resetearListadoCargado (){
+		listaPaginaCargando.clear();
+		Log.i( "Info", "Cargado = 0 \n" );
+	}
+
+	public void resetearListadoCargado ( String marca ){
+		listaPaginaCargando.clear();
+		Log.i( "Info", "Cargado = 0 : "+ marca +"\n" );
+	}
+
+	public boolean getMostrandoAlerta (){
+		return mostrandoAlerta;
+	}
+
+	public boolean setMostrandoAlerta ( boolean estadoAlertas ){
+		return mostrandoAlerta = estadoAlertas;
 	}
 
 }
