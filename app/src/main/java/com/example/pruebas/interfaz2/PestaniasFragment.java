@@ -75,6 +75,7 @@ public class PestaniasFragment extends Fragment {
 		});
 
 		seccion1.setPestanias( this );
+		seccion2.setPestanias( this );
 		seccion3.setPestanias( this );
 
 		return x;
@@ -195,7 +196,7 @@ public class PestaniasFragment extends Fragment {
 		editorPreferencias.commit();
 	}
 
-	private String getPlantelSeleccionado (){
+	public String getPlantelSeleccionado (){
 		return listaPlanteles.getSelectedItem().toString();
 	}
 
@@ -249,7 +250,7 @@ public class PestaniasFragment extends Fragment {
 					case PESTANIA_REFERENCIAS :
 						muestraPlanteles();
 						ocultaAccesos();
-						seccion2.revisaConexionInternet();
+						// seccion2.revisaConexionInternet();
 						break;
 					case PESTANIA_LUGARES :
 						muestraPlanteles();
@@ -424,4 +425,9 @@ public class PestaniasFragment extends Fragment {
 		plantelActivo = getPlantelSeleccionado();
 	}
 
+	/*
+	public Spinner getControlAccesos (){
+		return listaAccesos;
+	}
+	*/
 }

@@ -4,28 +4,63 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-    <!--
-    <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="@dimen/fab_margin"
-            android:src="@android:drawable/ic_dialog_email"/>
-    -->
 
-    <WebView
+    <LinearLayout android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+        <!--
+        <android.support.design.widget.FloatingActionButton
+                android:id="@+id/fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="@dimen/fab_margin"
+                android:src="@android:drawable/ic_dialog_email"/>
+        -->
+
+        <WebView
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/webReferencias" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text=""
-        android:id="@+id/textView2"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"/>
+        <!-- <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text=""
+            android:id="@+id/textView2"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"/> -->
+
+        <LinearLayout android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      android:gravity="center"
+                      android:orientation="vertical">
+
+            <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:text="@string/mensaje_conexion"
+            android:id="@+id/mensaje_pagina"
+            />
+
+            <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:text="@string/reintentar"
+            android:id="@+id/boton_reintentar_2"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>

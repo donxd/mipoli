@@ -12,6 +12,8 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.util.StringBuilderPrinter;
 import android.view.LayoutInflater;
@@ -175,25 +177,27 @@ public class MainActivity extends AppCompatActivity {
 				// }
 
 				switch ( id ){
-					case R.id.nav_camera:
+					case R.id.nav_manage:
+					//case R.id.nav_camera:
 						fragmentTransaction = fragmentManager.beginTransaction();
 						fragmentTransaction.replace( R.id.contenido_layout, pestaniasFragment );
 						fragmentTransaction.commit();
 						break;
-					case R.id.nav_gallery:
+					case R.id.nav_share:
+					//case R.id.nav_gallery:
 						// FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 						fragmentTransaction = fragmentManager.beginTransaction();
 						fragmentTransaction.replace( R.id.contenido_layout, anoterFragment );
 						fragmentTransaction.commit();
 						break;
-					case R.id.nav_slideshow:
+					/*case R.id.nav_slideshow:
 						break;
 					case R.id.nav_manage:
 						break;
 					case R.id.nav_share:
 						break;
 					case R.id.nav_send:
-						break;
+						break;*/
 				}
 
 				return true;
@@ -316,18 +320,22 @@ public class MainActivity extends AppCompatActivity {
 		setControlRecargar();
 		controlRecargar.setOnClickListener( new View.OnClickListener(){
 			public void onClick( View vista ){
-				WebView navegador = getControlPagina();
-
-				if ( navegador != null ){
-					recargaNavegador( navegador );
-					mostrarMensajeRecargando();
-				}
+				comportamientoRecargar();
 			}
 		});
 	}
 
+	public void comportamientoRecargar (){
+		WebView navegador = getControlPagina();
+
+		if ( navegador != null ){
+			recargaNavegador( navegador );
+			mostrarMensajeRecargando();
+		}
+	}
+
 	private void recargaNavegador ( WebView navegador ){
-		if ( pestaniasFragment.getViewPager().getCurrentItem() != PESTANIA_REFERENCIAS && getPaginaCargada() ){
+		if ( getPestaniaActiva() != PESTANIA_REFERENCIAS && paginaFueCargada() && paginaSinError() ){
 			inyectaScript( navegador, getScriptRecargar() );
 		} else {
 			navegador.reload();
@@ -562,9 +570,13 @@ public class MainActivity extends AppCompatActivity {
 
 	public WebView getControlPagina (){
 
-		if ( pestaniasFragment == null || pestaniasFragment.getViewPager() == null ) return null;
+		if ( pestaniasNoGeneradas() ) return null;
 
-		switch ( pestaniasFragment.getViewPager().getCurrentItem() ){
+		return getControlPaginaActiva();
+	}
+
+	private WebView getControlPaginaActiva (){
+		switch ( getPestaniaActiva() ){
 			case PESTANIA_SAES        : return pestaniasFragment.getPrimeraSeccion().getControlSaes();
 			case PESTANIA_REFERENCIAS : return pestaniasFragment.getSegundaSeccion().getControlReferencias();
 			case PESTANIA_LUGARES     : return pestaniasFragment.getTerceraSeccion().getControlLugares();
@@ -572,12 +584,22 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
-	public boolean getPaginaCargada (){
-		if ( pestaniasFragment == null || pestaniasFragment.getViewPager() == null ) return false;
+	public boolean paginaFueCargada (){
+		if ( pestaniasNoGeneradas() ) return false;
 
-		switch ( pestaniasFragment.getViewPager().getCurrentItem() ){
+		switch ( getPestaniaActiva() ){
 			case PESTANIA_SAES    : return pestaniasFragment.getPrimeraSeccion().esPaginaCargada();
 			case PESTANIA_LUGARES : return pestaniasFragment.getTerceraSeccion().esPaginaCargada();
+			default: return false;
+		}
+	}
+
+	public boolean paginaSinError (){
+		if ( pestaniasNoGeneradas() ) return false;
+
+		switch ( getPestaniaActiva() ){
+			case PESTANIA_SAES    : return pestaniasFragment.getPrimeraSeccion().cargaConError();
+			case PESTANIA_LUGARES : return pestaniasFragment.getTerceraSeccion().cargaConError();
 			default: return false;
 		}
 	}
@@ -594,14 +616,14 @@ public class MainActivity extends AppCompatActivity {
 					if ( paginaLugares != null && paginaOcupabilidad != null ){
 						paginaLugares.loadUrl( paginaOcupabilidad );
 
-						if ( pestaniasFragment.getViewPager().getCurrentItem() != 0 ){
+						if ( getPestaniaActiva() != 0 ){
 							pestaniasFragment.getPrimeraSeccion().getControlSaes().reload();
 						}
 
 					} else {
 
-						if ( paginaLugares == null ) Log.i( "Info", "Control - Pagina no existe" );
-						if ( paginaOcupabilidad == null ) Log.i( "Info", "Control - Destino no existe" );
+						if ( paginaLugares == null ) Log.i( "Info", "Control Lugares - Pagina no existe" );
+						if ( paginaOcupabilidad == null ) Log.i( "Info", "Control Ocupabilidad - Destino no existe" );
 
 					}
 				}
@@ -715,5 +737,56 @@ public class MainActivity extends AppCompatActivity {
 	public boolean setMostrandoAlerta ( boolean estadoAlertas ){
 		return mostrandoAlerta = estadoAlertas;
 	}
+
+	public void ocultaPaginaPresentada (){
+		if ( pestaniasGeneradas() ){
+
+			final WebView controlPagina = getControlPaginaActiva();
+
+			if ( controlPagina != null ){
+
+				runOnUiThread( new Runnable() {
+					@Override
+					public void run() {
+						controlPagina.setVisibility( View.GONE );
+						Log.i( "Info", "pagina - ocultada" );
+					}
+				});
+
+			}
+
+		}
+	}
+
+	private boolean pestaniasNoGeneradas (){
+		return pestaniasFragment == null || pestaniasFragment.getViewPager() == null;
+	}
+
+	private boolean pestaniasGeneradas (){
+		return !pestaniasNoGeneradas();
+	}
+
+	private int getPestaniaActiva (){
+		return pestaniasFragment.getViewPager().getCurrentItem();
+	}
+
+	/*
+	public Spinner inicializaControlListaPlanteles (){
+		Spinner controlTraspaso = null;
+		if ( controlPlanteles == null ) Log.i( "Info", "main:controlPlanteles -> null" );
+		else {
+			controlTraspaso = controlPlanteles;
+			pestaniasFragment.getPrimeraSeccion().setControlPlanteles( controlTraspaso );
+			pestaniasFragment.getSegundaSeccion().setControlPlanteles( controlTraspaso );
+			pestaniasFragment.getTerceraSeccion().setControlPlanteles( controlTraspaso );
+		}
+
+		return controlTraspaso;
+	}
+
+	public PestaniasFragment getPestanias (){
+		return pestaniasFragment;
+	}
+	*/
 
 }

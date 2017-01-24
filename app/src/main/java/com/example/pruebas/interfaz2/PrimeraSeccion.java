@@ -33,6 +33,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -52,6 +53,7 @@ public class PrimeraSeccion extends Fragment {
 
 	private static boolean paginaConfigurada = false;
 	private boolean paginaCargada = false;
+	private boolean paginaError = false;
 
 	private final String marcaLog = "InfoEx";
 	private final String rutaScript = "js/core.js";
@@ -71,6 +73,7 @@ public class PrimeraSeccion extends Fragment {
 	private TextView mensajesPagina = null;
 	private AlertDialog.Builder constructorAlertas = null;
 	private AlertDialog mensajeAlerta = null;
+	private File almacenamiento = null;
 
 	@Nullable
 	@Override
@@ -80,8 +83,45 @@ public class PrimeraSeccion extends Fragment {
 			return layoutInflater.inflate( R.layout.primera_seccion, null );
 		}
 
+		if ( almacenamiento == null ){
+			almacenamiento = generaLugarAlmacenamiento();
+		}
+
+
 		return vista;
 	}
+
+	// private File generaLugarAlmacenamiento (){
+	// 	return context.getDir( "database", Context.MODE_PRIVATE );
+	// }
+
+	
+	private File generaLugarAlmacenamiento (){
+		File lugarAlmacenamiento = null;
+		if ( context == null ) Log.i( "Info", "contexto -> null" );
+
+		try {
+			lugarAlmacenamiento = context.getDir( "database", Context.MODE_PRIVATE );
+			Log.i( "Info", "OK - almacenamiento 1" );
+		} catch ( NullPointerException error ){
+			Log.i( "Info", "Error - almacenamiento 1" );
+		}
+
+		if ( lugarAlmacenamiento != null ) return lugarAlmacenamiento;
+
+		// context = getActivity();
+
+		try {
+			almacenamiento = getActivity().getDir( "database", Context.MODE_PRIVATE );
+			Log.i( "Info", "OK - almacenamiento 2" );
+		} catch ( NullPointerException error ){
+			Log.i( "Info", "Error - almacenamiento 2" );
+		}
+
+		return lugarAlmacenamiento;
+
+	}
+
 
 	@Override
 	public void onViewCreated ( View view, Bundle savedInstanceState ){
@@ -91,6 +131,7 @@ public class PrimeraSeccion extends Fragment {
 		if ( !paginaConfigurada ){
 			cargaPaginaSaes();
 			paginaConfigurada = true;
+			configuraBotonReintentar();
 		}
 	}
 
@@ -106,8 +147,22 @@ public class PrimeraSeccion extends Fragment {
 		if ( !paginaCargada ){
 			paginaCargada = true;
 			pagina.reload();
+			paginaError = false;
 		}
 	}
+
+	/*
+	public void controlaPaginaSaes (){
+		if ( !paginaCargada ){
+			paginaCargada = true;
+			if ( pagina == null ){
+				configuraControlPagina();
+			}
+			pagina.reload();
+			paginaError = false;
+		}
+	}
+	*/
 
 	public void cargaPaginaSaes (){
 
@@ -119,6 +174,7 @@ public class PrimeraSeccion extends Fragment {
 		configuraConexionJs();
 
 		paginaCargada = false;
+		paginaError = false;
 		pagina.loadUrl( paginaCargar );
 		pestanias.fijaPlantelSeleccionado();
 		// Log.i( "Info", "Seguimiento - cargaPaginaSaes", new Exception() );
@@ -130,21 +186,64 @@ public class PrimeraSeccion extends Fragment {
 			//WebView.setWebContentsDebuggingEnabled( true );
 			pagina = (WebView) vista.findViewById(R.id.nav_web);
 			pagina.getSettings().setDomStorageEnabled( true );
-			pagina.getSettings().setBuiltInZoomControls( true );
 			pagina.getSettings().setJavaScriptEnabled( true );
-			pagina.getSettings().setPluginState( WebSettings.PluginState.ON );
-			pagina.getSettings().setDatabasePath( context.getDir( "database", Context.MODE_PRIVATE ).getPath() );
-			// pagina.getSettings().setSaveFormData(false);
+			configuraPluginPdf();
+			configuraCacheDatos();
 			pagina.getSettings().setDatabaseEnabled( true );
+			pagina.getSettings().setBuiltInZoomControls( true );
 			pagina.getSettings().setSupportZoom( true );
-			//pagina.clearFormData();
 			pagina.setWebViewClient( getComportamientoPagina() );
-
 			// configuraTeclado();
 			configuraZoom();
 			// configuraRedimensionamiento();
 		}
 	}
+
+	private void configuraPluginPdf (){
+		if ( Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2 ){
+			pagina.getSettings().setPluginState( WebSettings.PluginState.ON );
+		}
+	}
+
+	private void configuraCacheDatos (){
+
+		if ( Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT ){
+
+			if ( almacenamiento == null ){
+				Log.i( "Info", "almacenamiento -> null" );
+				almacenamiento = generaLugarAlmacenamiento();
+			}
+
+			pagina.getSettings().setDatabasePath( almacenamiento.getPath() );
+		}
+		// pagina.getSettings().setSaveFormData(false);
+		//pagina.clearFormData();
+	}
+
+	/*
+	private void configuraCacheDatos (){
+
+		if ( Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT ){
+
+			try {
+				if ( almacenamiento == null ){
+					Log.i( "Info", "almacenamiento -> null" );
+					generaLugarAlmacenamiento();
+				}
+				
+				pagina.getSettings().setDatabasePath( almacenamiento.getPath() );
+			} catch ( NullPointerException error ){
+				if ( pagina.getSettings() == null ) Log.i( "Info", "pagina.getSettings() -> null" );
+				if ( context == null ) Log.i( "Info", "pagina.getSettings() -> null" );
+				//if ( context.getDir( "datkabase", Context.MODE_PRIVATE ) == null ) Log.i( "Info", "context.getDir( \"database\", Context.MODE_PRIVATE ) -> null" );
+
+				//almacenamiento = generaLugarAlmacenamiento();
+			}
+		}
+		// pagina.getSettings().setSaveFormData(false);
+		//pagina.clearFormData();
+	}
+	*/
 
 	private void configuraConexionJs (){
 		javaJs.setPrimeraSeccion( (PrimeraSeccion) this );
@@ -203,9 +302,14 @@ public class PrimeraSeccion extends Fragment {
 			public void onPageFinished ( WebView webview, String url ){
 				super.onPageFinished( webview, url );
 				paginaCargada = true;
-				// ( ( MainActivity ) pestanias.getActivity() ).setSaesCargado();
-				controlaPaginaCargada( webview, url );
-				// Log.i( "Info", "SAES { url : '"+ url +"' }" );
+				if ( paginaError ){
+					( ( MainActivity ) pestanias.getActivity() ).ocultaPaginaPresentada();
+					paginaError = false;
+				} else {
+					// ( ( MainActivity ) pestanias.getActivity() ).setSaesCargado();
+					controlaPaginaCargada( webview, url );
+					// Log.i( "Info", "SAES { url : '"+ url +"' }" );
+				}
 			}
 
 			@Override
@@ -223,7 +327,7 @@ public class PrimeraSeccion extends Fragment {
 	}
 
 	private void controlaPaginaCargada ( WebView webview, String url ){
-		if ( paginaCargada && paginaEsVisible() ){
+		if ( paginaCargada && paginaNoEsVisible() ){
 			muestraPagina();
 		}
 		controlaZoomPagina();
@@ -256,7 +360,7 @@ public class PrimeraSeccion extends Fragment {
 		return url.contains( "/PDF/" );
 	}
 
-	private boolean paginaEsVisible (){
+	private boolean paginaNoEsVisible (){
 		return pagina.getVisibility() == View.GONE;
 	}
 
@@ -295,8 +399,11 @@ public class PrimeraSeccion extends Fragment {
 
 	private void controlaErrorPagina ( WebView view, int errorCode, String description, String failingUrl ){
 		paginaCargada = false;
-		( ( MainActivity ) pestanias.getActivity() ).resetearListadoCargado( "error ps" );
-		ocultaControlPagina( view );
+		paginaError = true;
+		// ( ( MainActivity ) pestanias.getActivity() ).ocultaPaginaPresentada();
+		// ( ( MainActivity ) pestanias.getActivity() ).resetearListadoCargado( "error ps" );
+		// ocultaControlPagina( view );
+		// ocultaControlPagina();
 		if ( noHayAlertasActivas() ){
 			muestraMensajeErrorPagina( errorCode );
 			indicarMostrandoAlerta();
@@ -416,16 +523,83 @@ public class PrimeraSeccion extends Fragment {
 	}
 
 	private String getPaginaCargar (){
-		// cargaPreferencias();
+		cargaPreferencias();
 		String plantel = preferencias.getString( "plantel", "" );
 		if ( plantel.length() == 0 ) {
-			plantel = controlListaPlanteles.getSelectedItem().toString();
+			plantel = getControlPlantelSeleccion();
 		}
 
 		return String.format( "https://www.saes.%s.ipn.mx", plantel.toLowerCase() );
 	}
 
-	private void cargaPreferencias() {
+	private String getControlPlantelSeleccion (){
+		return controlListaPlanteles.getSelectedItem().toString();
+	}
+
+	/*
+	private String getControlPlantelSeleccion (){
+		if ( controlListaPlanteles == null ){
+			Log.i( "Info", "controlListaPlanteles -> null" );
+
+			// if ( pestanias == null ) Log.i( "Info", "pestanias? -> null" );
+
+			// MainActivity principal = (MainActivity) getActivity();
+
+			// if ( principal == null ) Log.i( "Info", "main activity -> null" );
+
+			// Spinner controlPlanteles = principal.inicializaControlListaPlanteles();
+			// PestaniasFragment pestaniasPrincipal = principal.getPestanias();
+
+			// if ( pestaniasPrincipal == null ) Log.i( "Info", "PestaniasFragment -> null" );
+			// else {
+			// 	pestanias = pestaniasPrincipal;
+			// }
+
+			// if ( controlPlanteles == null ) Log.i( "Info", "controlPlanteles -> null" );
+			// else {
+			// 	return controlPlanteles .getItemAtPosition( 0 ).toString();
+			// }
+
+			// if ( controlListaPlanteles == null ) Log.i( "Info", "controlListaPlanteles2 -> null" );
+			// else {
+			// 	return controlListaPlanteles.getItemAtPosition( 0 ).toString();
+			// }
+
+			if ( pestanias == null ){
+				Log.i( "Info", "pestanias? -> null" );
+
+				MainActivity principal = (MainActivity) getActivity();
+
+				if ( principal == null ) Log.i( "Info", "main activity -> null" );
+
+				Spinner controlPlanteles = principal.inicializaControlListaPlanteles();
+				PestaniasFragment pestaniasPrincipal = principal.getPestanias();
+
+				if ( pestaniasPrincipal == null ) Log.i( "Info", "PestaniasFragment -> null" );
+				else {
+					pestanias = pestaniasPrincipal;
+				}
+
+				if ( controlPlanteles == null ) Log.i( "Info", "controlPlanteles -> null" );
+				else {
+					return controlPlanteles .getItemAtPosition( 0 ).toString();
+				}
+
+				if ( controlListaPlanteles == null ) Log.i( "Info", "controlListaPlanteles2 -> null" );
+				else {
+					return controlListaPlanteles.getItemAtPosition( 0 ).toString();
+				}
+			}
+
+			return pestanias.getPlantelSeleccionado();
+
+		}
+
+		return controlListaPlanteles.getSelectedItem().toString();
+	}
+	*/
+
+	private void cargaPreferencias (){
 		preferencias = PreferenceManager.getDefaultSharedPreferences( context );
 	}
 
@@ -440,6 +614,7 @@ public class PrimeraSeccion extends Fragment {
 
 			pagina.loadUrl( paginaCargar );
 			paginaCargada = false;
+			paginaError = false;
 			// Log.i( "Info", "Seguimiento - redirigePlantel", new Exception() );
 		}
 	}
@@ -459,6 +634,8 @@ public class PrimeraSeccion extends Fragment {
 
 			ultimaPagina = paginaCargar;
 			Log.i( marcaLog, " url-pagina : guardada " );
+			paginaCargada = false;
+			paginaError = false;
 			pagina.loadUrl( paginaCargar );
 			// Log.i( "Info", "Seguimiento - redirigeAcceso", new Exception() );
 		}
@@ -623,6 +800,22 @@ public class PrimeraSeccion extends Fragment {
 		controlListaAccesos.setActivated( true );
 	}
 
+	// private void marcarSeccionSaes ( String seccion ){
+	// 	Log.i( marcaLog, String.format( " seccion : [%s]", seccion ) );
+	// 	int posicionAcceso = OpcionesAccesos.getAcceso( seccion );
+	// 	Log.i( marcaLog, String.format( " posicion : [%d]", posicionAcceso ) );
+
+	// 	if ( controlListaAccesos == null ){
+	// 		controlListaAccesos = pestanias.getControlAccesos();
+
+	// 		if ( controlListaAccesos == null ) Log.i( "Info", "controlListaAccesos -> null" );
+	// 	}
+
+	// 	controlListaAccesos.setActivated( false );
+	// 	controlListaAccesos.setSelection( posicionAcceso );
+	// 	controlListaAccesos.setActivated( true );
+	// }
+
 	public void setPestanias ( PestaniasFragment pestanias ){
 		this.pestanias = pestanias;
 		javaJs.setPestanias( pestanias );
@@ -634,6 +827,25 @@ public class PrimeraSeccion extends Fragment {
 
 	public boolean esPaginaCargada (){
 		return paginaCargada;
+	}
+
+	public boolean cargaConError (){
+		return paginaError;
+	}
+
+	private void configuraBotonReintentar (){
+		Button reintentar = (Button) vista.findViewById( R.id.boton_reintentar );
+		reintentar.setOnClickListener( getComportamientoReintentar() );
+	}
+
+	private View.OnClickListener getComportamientoReintentar (){
+		return new View.OnClickListener(){
+
+			public void onClick ( View vista ){
+				( ( MainActivity ) pestanias.getActivity() ).comportamientoRecargar();
+			}
+
+		};
 	}
 
 }

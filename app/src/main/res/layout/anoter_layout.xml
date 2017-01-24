@@ -5,8 +5,50 @@
               android:layout_height="match_parent">
 
     <TextView
+        android:paddingTop="10dp"
+        android:paddingLeft="10dp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:text="@string/mensaje_1"/>
+
+    <TextView
+        android:paddingTop="20dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Se recomienda usar con el dispositivo sin muchas applicaciones abiertas."/>
+
+    <RelativeLayout android:layout_height="wrap_content"
+                    android:layout_width="match_parent">
+
+        <TextView
+            android:paddingTop="20dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/enlace_pagina_proyecto"
+            android:layout_alignParentLeft="true"
+            android:text="Proyecto"/>
+
+        <TextView
+            android:paddingTop="20dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:text="n0s3.xd@gmail.com"/>
+
+    </RelativeLayout>
+
+    <TextView
+        android:paddingTop="20dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Fco J Castañeda Mtz"/>
 
 </LinearLayout>
