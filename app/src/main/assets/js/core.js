@@ -1087,7 +1087,7 @@ function inicializaDatos (){
 
 	enumerarRegistros( registros, 1 );
 	contador = document.getElementById( 'contador' );
-	buscador.focus();
+	// buscador.focus();
 }
 
 function enumerarRegistros ( datos, inicio ){
